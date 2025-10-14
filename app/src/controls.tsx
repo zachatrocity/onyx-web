@@ -853,25 +853,25 @@ function Volume(): JSX.Element {
 	const [showSlider, setShowSlider] = createSignal(false);
 
 	const toggle = () => {
-		Settings.audio.muted.update((prev) => !prev);
+		Settings.audio.enabled.update((prev) => !prev);
 	};
 
-	const muted = solid(Settings.audio.muted);
+	const enabled = solid(Settings.audio.enabled);
 	const volume = solid(Settings.audio.volume);
 	const opacity = Opacity(() => showSlider());
 
 	const setVolume = (v: number) => {
 		if (v === 0) {
-			Settings.audio.muted.set(true);
+			Settings.audio.enabled.set(false);
 			Settings.audio.volume.set(1.0);
 		} else {
-			Settings.audio.muted.set(false);
+			Settings.audio.enabled.set(true);
 			Settings.audio.volume.set(v);
 		}
 	};
 
 	return (
-		<Tooltip content={muted() ? "Enable audio" : "Disable audio"} position="top">
+		<Tooltip content={enabled() ? "Disable audio" : "Enable audio"} position="top">
 			<fieldset
 				class="flex flex-col-reverse pointer-events-auto"
 				aria-label="Volume controls"
@@ -884,12 +884,12 @@ function Volume(): JSX.Element {
 					type="button"
 					onClick={toggle}
 					role="switch"
-					aria-checked={!muted()}
+					aria-checked={enabled()}
 					aria-label="Toggle mute"
 					class="hover:bg-gray-700 transition-all cursor-pointer p-2 backdrop-blur-sm bg-transparent rounded"
-					classList={{ "text-red-500": muted() }}
+					classList={{ "text-red-500": !enabled() }}
 				>
-					<span class={muted() ? "icon-[mdi--volume-mute]" : "icon-[mdi--volume-high]"} />
+					<span class={!enabled() ? "icon-[mdi--volume-mute]" : "icon-[mdi--volume-high]"} />
 				</button>
 				<Show when={opacity() > 0}>
 					<input
@@ -897,7 +897,7 @@ function Volume(): JSX.Element {
 						min="0"
 						step="0.01"
 						max="2"
-						value={muted() ? 0 : volume()}
+						value={enabled() ? volume() : 0}
 						onInput={(e) => setVolume(Number(e.currentTarget.value))}
 						class="cursor-pointer backdrop-blur-sm bg-transparent rounded py-1 px-2 outline-none"
 						aria-label="Output Volume"

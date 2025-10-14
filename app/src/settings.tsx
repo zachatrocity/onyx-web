@@ -28,8 +28,8 @@ export const Settings = {
 	draggable: new Signal(localStorage.getItem("settings.draggable") !== "false"),
 
 	audio: {
+		enabled: new Signal(localStorage.getItem("settings.audio.enabled") !== "false"),
 		volume: new Signal<number>(Number.parseFloat(localStorage.getItem("settings.audio.volume") ?? "1")),
-		muted: new Signal(localStorage.getItem("settings.audio.muted") === "true"),
 		tts: new Signal<TTS>(loadTTS()),
 	},
 
@@ -109,8 +109,8 @@ effect.subscribe(Settings.audio.volume, (volume) => {
 	localStorage.setItem("settings.audio.volume", volume.toString());
 });
 
-effect.subscribe(Settings.audio.muted, (muted) => {
-	localStorage.setItem("settings.audio.muted", muted.toString());
+effect.subscribe(Settings.audio.enabled, (enabled) => {
+	localStorage.setItem("settings.audio.enabled", enabled.toString());
 });
 
 effect.subscribe(Settings.microphone.gain, (gain) => {

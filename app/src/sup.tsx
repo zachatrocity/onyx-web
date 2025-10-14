@@ -16,9 +16,10 @@ import { Canvas } from "./room/canvas";
 import { Local } from "./room/local";
 
 import "@kixelated/hang/support/element";
+import { Sound } from "./room/sound";
 import Settings from "./settings";
 
-export function Sup(props: { canvas: Canvas; room: string }): JSX.Element {
+export function Sup(props: { canvas: Canvas; room: string; sound: Sound }): JSX.Element {
 	const connection = new Moq.Connection.Reload({ enabled: true });
 	onCleanup(() => connection.close());
 
@@ -57,22 +58,29 @@ export function Sup(props: { canvas: Canvas; room: string }): JSX.Element {
 
 	return (
 		<Show when={publish()} fallback={<Preview room={props.room} local={local} connection={connection} />}>
-			<App connection={connection} canvas={props.canvas} room={props.room} local={local} />
+			<App connection={connection} canvas={props.canvas} room={props.room} sound={props.sound} local={local} />
 		</Show>
 	);
 }
 
-function App(props: { connection: Moq.Connection.Reload; canvas: Canvas; room: string; local: Local }): JSX.Element {
+function App(props: {
+	connection: Moq.Connection.Reload;
+	canvas: Canvas;
+	sound: Sound;
+	room: string;
+	local: Local;
+}): JSX.Element {
 	const room = new Room({
-		canvas: props.canvas,
 		// name: props.room,
+		canvas: props.canvas,
 		local: props.local,
+		sound: props.sound,
 		connection: props.connection,
 	});
 	onCleanup(() => room.close());
 
 	// Try to start the sound immediately on click.
-	props.local.sound.enabled.set(true);
+	props.sound.click();
 
 	// Update badge count based on room participants
 	const participantCount = solid(room.space.ordered);

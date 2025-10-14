@@ -84,7 +84,7 @@ export class Audio {
 			// Cancel any scheduled transitions on change.
 			effect.cleanup(() => gain.gain.cancelScheduledValues(gain.context.currentTime));
 
-			const volume = effect.get(Settings.audio.muted) ? 0 : effect.get(Settings.audio.volume);
+			const volume = effect.get(Settings.audio.enabled) ? effect.get(Settings.audio.volume) : 0;
 
 			if (volume < GAIN_MIN) {
 				gain.gain.exponentialRampToValueAtTime(GAIN_MIN, gain.context.currentTime + FADE_TIME);

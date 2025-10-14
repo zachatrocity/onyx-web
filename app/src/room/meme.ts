@@ -1291,6 +1291,7 @@ export function audio(name: string): Audio | undefined {
 	audio.autoplay = true;
 	audio.muted = true;
 	audio.load();
+	audio.play();
 
 	return { element: audio, source: audioSource };
 }
@@ -1329,6 +1330,7 @@ export function video(name: string): Video | undefined {
 	video.style.objectFit = videoSource.fit || "contain";
 	video.style.objectPosition = videoSource.position || "center";
 	video.load();
+	video.play();
 
 	return { element: video, source: videoSource };
 }

@@ -209,13 +209,9 @@ export class Video {
 			return;
 		}
 
-		// Set chroma key color from meme source (defaults to pure green)
-		if ("file" in meme.source) {
-		}
-
 		const element = meme.element;
 
-		effect.event(element, "ended", () => {
+		effect.event(element, "pause", () => {
 			this.memeActive.set(false);
 		});
 
@@ -232,7 +228,6 @@ export class Video {
 			// Listen for loadedmetadata event to update meme size when dimensions are available
 			const updateSize = () => {
 				if (element.videoWidth > 0 && element.videoHeight > 0) {
-					this.memeActive.set(true);
 					effect.set(this.#memeSize, Vector.create(element.videoWidth, element.videoHeight));
 				}
 			};
@@ -371,15 +366,21 @@ export class Video {
 				} else {
 					this.memeChroma = chroma;
 				}
+				frame.close();
 			}
 
-			gl.bindTexture(gl.TEXTURE_2D, dst);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.bindTexture(gl.TEXTURE_2D, null);
+			// Don't render the frame until we start playing
+			if (src.currentTime > 0 && src.readyState > HTMLMediaElement.HAVE_CURRENT_DATA) {
+				this.memeActive.set(true);
+
+				gl.bindTexture(gl.TEXTURE_2D, dst);
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+				gl.bindTexture(gl.TEXTURE_2D, null);
+			}
 
 			if (!src.paused && !src.ended) {
 				cancel = src.requestVideoFrameCallback(onFrame);
@@ -388,9 +389,10 @@ export class Video {
 
 		cancel = src.requestVideoFrameCallback(onFrame);
 
-		effect.cleanup(() => src.cancelVideoFrameCallback(cancel));
 		effect.cleanup(() => {
+			src.cancelVideoFrameCallback(cancel);
 			this.memeChroma = undefined;
+			this.memeActive.set(false);
 		});
 	}
 

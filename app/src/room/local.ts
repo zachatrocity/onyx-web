@@ -3,7 +3,6 @@ import type * as Moq from "@kixelated/moq";
 import { Effect, Signal } from "@kixelated/signals";
 import Settings from "../settings";
 import * as Tauri from "../tauri";
-import { Sound } from "./sound";
 
 export interface LocalProps {
 	connection?: Signal<Moq.Connection.Established | undefined> | Moq.Connection.Established;
@@ -24,9 +23,6 @@ export class Local {
 	share: Publish.Broadcast;
 	screen: Publish.Source.Screen;
 
-	// For notifications, created here just because it's more convenient.
-	sound: Sound;
-
 	// Name and avatar signals that can be overridden
 	name: Signal<string | undefined>;
 	avatar: Signal<string | undefined>;
@@ -39,7 +35,6 @@ export class Local {
 
 	constructor(props?: LocalProps) {
 		this.connection = Signal.from(props?.connection);
-		this.sound = new Sound();
 
 		// Use provided name/avatar or fall back to Settings
 		this.name = Signal.from(props?.name ?? Settings.account.name);
@@ -207,19 +202,6 @@ export class Local {
 			effect.set(this.camera.audio.captions.enabled, captions, false);
 		});
 		*/
-
-		// Use the provided camera and screen broadcasts
-		this.camera.signals.effect((effect) => {
-			if (effect.get(this.camera.video.source) || effect.get(this.camera.audio.source)) {
-				this.sound.play("select");
-			}
-		});
-
-		this.share.signals.effect((effect) => {
-			if (effect.get(this.share.video.source) || effect.get(this.share.audio.source)) {
-				this.sound.play("select");
-			}
-		});
 
 		this.camera.signals.effect((effect) => {
 			const message = effect.get(this.camera.chat.message.latest);

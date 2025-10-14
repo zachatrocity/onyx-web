@@ -33,6 +33,7 @@ export class Sound {
 
 	context: AudioContext;
 	gain: GainNode;
+	suspended: Signal<boolean>;
 
 	#sounds: Map<NotificationSound, Promise<AudioBuffer[]>>;
 	#signals = new Effect();
@@ -46,6 +47,8 @@ export class Sound {
 
 		this.gain = new GainNode(this.context);
 		this.gain.connect(this.context.destination);
+
+		this.suspended = new Signal(this.context.state === "suspended");
 
 		const sounds = new Map();
 
@@ -66,6 +69,7 @@ export class Sound {
 
 			if (enabled) {
 				this.context.resume();
+				this.suspended.set(this.context.state === "suspended");
 			} else if (!enabled) {
 				this.context.suspend();
 			}
@@ -78,7 +82,7 @@ export class Sound {
 
 	#runGain(effect: Effect) {
 		// Reduce the volume for notifications so we can hear them over everything else.
-		const volume = effect.get(Settings.audio.muted) ? 0 : effect.get(Settings.audio.volume) / 2;
+		const volume = effect.get(Settings.audio.enabled) ? effect.get(Settings.audio.volume) / 2 : 0;
 
 		// Cancel any scheduled transitions on change.
 		effect.cleanup(() => this.gain.gain.cancelScheduledValues(this.gain.context.currentTime));
@@ -107,8 +111,12 @@ export class Sound {
 		source.start();
 	}
 
-	resume() {
-		this.context.resume();
+	// Called on click to reinitialize the audio context.
+	click() {
+		// Force the effects to run again.
+		if (this.suspended.peek()) {
+			this.enabled.update((prev) => prev);
+		}
 	}
 
 	close() {

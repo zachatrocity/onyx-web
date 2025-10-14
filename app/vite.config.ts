@@ -76,6 +76,11 @@ export default defineConfig(() => {
 			strictPort: true,
 			host: process.env.TAURI_DEV_HOST || false,
 			hmr: false,
+			headers: {
+				"Access-Control-Allow-Origin": "*",
+				"Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+				"Access-Control-Allow-Headers": "Range",
+			},
 			fs: {
 				allow: [
 					".",

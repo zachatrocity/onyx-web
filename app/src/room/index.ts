@@ -6,11 +6,13 @@ import { Broadcast } from "./broadcast";
 import type { Canvas } from "./canvas";
 import { Local } from "./local";
 import { Locator } from "./locator";
+import { Sound } from "./sound";
 import { Space } from "./space";
 
 export interface RoomProps {
 	connection: Moq.Connection.Reload;
 	canvas: Canvas;
+	sound: Sound;
 	local: Local;
 }
 
@@ -34,7 +36,7 @@ export class Room {
 	constructor(props: RoomProps) {
 		this.connection = props.connection;
 		this.local = props.local;
-		this.space = new Space(props.canvas, props.local.sound);
+		this.space = new Space(props.canvas, props.sound);
 
 		this.#signals.effect((effect) => {
 			const connection = effect.get(this.connection.established);
@@ -82,6 +84,19 @@ export class Room {
 
 			// Auto-close after 8 seconds (7s visible + 1s fade transition)
 			effect.timer(() => locator.close(), 8000);
+		});
+
+		// Play a sound when the camera or screen is selected
+		this.local.camera.signals.effect((effect) => {
+			if (effect.get(this.local.camera.video.source) || effect.get(this.local.camera.audio.source)) {
+				this.space.sound.play("select");
+			}
+		});
+
+		this.local.share.signals.effect((effect) => {
+			if (effect.get(this.local.share.video.source) || effect.get(this.local.share.audio.source)) {
+				this.space.sound.play("select");
+			}
 		});
 	}
 

@@ -181,7 +181,8 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 				effect.effect((effect) => {
 					meme.element.muted = !effect.get(this.audio.sound.parent.enabled);
 				});
-				effect.cleanup(() => meme.element.pause());
+				// NOTE: We purposely don't cancel/pause the meme unless a second meme is selected.
+				//effect.cleanup(() => meme.element.pause());
 
 				this.meme.update((prev) => {
 					prev?.element.pause();

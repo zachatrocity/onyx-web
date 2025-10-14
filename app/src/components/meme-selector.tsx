@@ -156,11 +156,11 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 		const videoMemeNames = Object.keys(Meme.VIDEO);
 		return Object.keys(Meme.AUDIO)
 			.filter((name) => !videoMemeNames.includes(name))
-			.sort();
+			.sort() as Meme.AudioName[];
 	};
 
 	const sortedVideoMemes = () => {
-		return Object.keys(Meme.VIDEO).sort();
+		return Object.keys(Meme.VIDEO).sort() as Meme.VideoName[];
 	};
 
 	return (
@@ -306,7 +306,7 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 					<div class="flex flex-wrap gap-2">
 						<For each={sortedVideoMemes()}>
 							{(meme) => {
-								const memeData = Meme.VIDEO[meme as Meme.VideoName];
+								const memeData = Meme.VIDEO[meme];
 
 								const isPlaying = () => playingVideoMeme() === meme;
 								return (
@@ -335,7 +335,8 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 													video.element.pause()
 												});
 
-												// class="absolute inset-0 w-full h-full opacity-70"
+												// TODO lul
+												video.element.className += " absolute inset-0 w-full h-full"
 												return video.element;
 											}}
 										</Show>

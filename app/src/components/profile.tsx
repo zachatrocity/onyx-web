@@ -60,7 +60,7 @@ export default function Profile(props: { local: Local }): JSX.Element {
 			{/* Avatar/Video Preview */}
 
 			<div class="relative text-center">
-				<div class="h-48 rounded-3xl flex items-center justify-center">{canvas}</div>
+				<div class="h-64 rounded-3xl flex items-center justify-center">{canvas}</div>
 			</div>
 
 			{/* Media Controls */}
@@ -128,7 +128,6 @@ class LocalPreview {
 
 		// Create a minimal sound context (muted for preview)
 		this.sound = new Sound();
-		this.sound.enabled.set(false); // Keep muted for preview
 
 		this.space = new Space(this.canvas, this.sound, {
 			// Not elegant, but disable some of the functionality for this profile preview.

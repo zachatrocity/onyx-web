@@ -83,11 +83,11 @@ export class Space {
 	}
 
 	#onMouseDown(e: MouseEvent) {
+		this.sound.click();
+
 		const mouse = this.canvas.relative(e.clientX, e.clientY);
 		const viewport = this.canvas.viewport.peek();
 
-		// Try enabling sound if we clicked the canvas.
-		this.sound.enabled.update(() => true);
 		this.#dragging = undefined;
 
 		const broadcast = this.#at(mouse);
@@ -250,6 +250,8 @@ export class Space {
 	}
 
 	#onTouchStart(e: TouchEvent) {
+		this.sound.click();
+
 		// Store all active touches
 		this.#touches.clear();
 		for (const touch of e.touches) {

@@ -23,12 +23,18 @@ import { NotFound } from "./not-found";
 import { Oauth } from "./oauth";
 import Privacy from "./privacy";
 import { Canvas } from "./room/canvas";
+import { Sound } from "./room/sound";
+import Settings from "./settings";
 import { Sup } from "./sup";
 
 export function Hang(): JSX.Element {
 	const background = (<canvas class="fixed inset-0 w-full h-full bg-black" />) as HTMLCanvasElement;
+
 	const canvas = new Canvas(background);
 	onCleanup(() => canvas.close());
+
+	const sound = new Sound({ enabled: Settings.audio.enabled });
+	onCleanup(() => sound.close());
 
 	const authenticated = solid(Api.client.authenticated);
 
@@ -44,17 +50,17 @@ export function Hang(): JSX.Element {
 				<Route path="/privacy" component={() => <Privacy />} />
 				<Route path="/oauth/*redirect" component={() => <Oauth />} />
 				{import.meta.env.DEV && <Route path="/dev/icons" component={Icons} />}
-				<Route path="*" component={() => <Fallback background={canvas} />} />
+				<Route path="*" component={() => <Fallback canvas={canvas} sound={sound} />} />
 			</Router>
 		</>
 	);
 }
 
-function Fallback(props: { background: Canvas }) {
+function Fallback(props: { canvas: Canvas; sound: Sound }) {
 	const path = useLocation();
 	return (
 		<Show when={path.pathname.startsWith("/@")} fallback={<NotFound />}>
-			<Sup canvas={props.background} room={path.pathname.slice(2)} />
+			<Sup canvas={props.canvas} sound={props.sound} room={path.pathname.slice(2)} />
 		</Show>
 	);
 }
