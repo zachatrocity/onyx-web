@@ -1,5 +1,15 @@
-export type MemeSource = {
+export type FileMime = {
 	file: string;
+	mime: string;
+};
+
+export type Source = {
+	// Single file source or multiple sources with different formats (e.g., WebM, MP4)
+	// When multiple sources provided, the first supported format will be used
+	source: string | FileMime[];
+
+	// An optional image thumbnail for the meme.
+	thumbnail?: string;
 
 	// Rendered for audio memes
 	emoji?: string;
@@ -20,111 +30,365 @@ export type MemeSource = {
 	chroma?: string;
 };
 
-export interface MemeVideo {
-	source: MemeSource;
+export interface Video {
+	source: Source;
 	element: HTMLVideoElement;
 }
 
-export interface MemeAudio {
-	source: MemeSource;
+export interface Audio {
+	source: Source;
 	element: HTMLAudioElement;
 }
 
-export type Meme = MemeVideo | MemeAudio;
+export type AV = Video | Audio;
 
-export const MEME_AUDIO = {
-	"among-us": { file: "among-us.mp3", emoji: "📮" },
-	aww: { file: "aww.mp3", emoji: "🥺" },
-	brb: { file: "be-right-back.mp3", emoji: "🚶" },
-	bluetooth: { file: "bluetooth.mp3", emoji: "📶" },
-	bonk: { file: "bonk.mp3", emoji: "🏏" },
-	bruh: { file: "bruh.mp3", emoji: "😑" },
-	"check-mark": { file: "check-mark.mp3", emoji: "✅" },
-	checkout: { file: "checkout.mp3", emoji: "🛒" },
-	danger: { file: "danger.mp3", emoji: "⚠️" },
-	disappear: { file: "disappear.mp3", emoji: "💨" },
-	discord: { file: "discord.mp3", emoji: "💬" },
-	error: { file: "error.mp3", emoji: "❌" },
-	fbi: { file: "fbi.mp3", emoji: "👮" },
-	fart: { file: "fart-reverb.mp3", emoji: "💩" },
-	"fitness-gram": { file: "fitness-gram.mp3", emoji: "💪" },
-	"hello-there": { file: "hello-there.mp3", emoji: "👋" },
-	hub: { file: "hub-intro.mp3", emoji: "🍑" },
-	huh: { file: "huh.mp3", emoji: "🤔" },
-	incorrect: { file: "incorrect.mp3", emoji: "❌" },
-	knock: { file: "knock.mp3", emoji: "🚪" },
-	meow: { file: "meow.mp3", emoji: "🐱" },
-	"metal-pipe": { file: "metal-pipe.mp3", emoji: "🔧" },
-	mlg: { file: "mlg.mp3", emoji: "📢" },
-	nut: { file: "nut.mp3", emoji: "🥜" },
-	oof: { file: "oof.mp3", emoji: "💀" },
-	piuw: { file: "piuw.mp3", emoji: "🔫" },
-	ps2: { file: "ps2.mp3", emoji: "🎮" },
-	quack: { file: "quack.mp3", emoji: "🦆" },
-	rizz: { file: "rizz.mp3", emoji: "😏" },
-	spooky: { file: "spooky.mp3", emoji: "💀" },
-	stinks: { file: "stinks.mp3", emoji: "💩" },
-	suspense: { file: "suspense.mp3", emoji: "😰" },
-	uwu: { file: "uwu.mp3", emoji: "🥰" },
-	violin: { file: "violin.mp3", emoji: "🎻" },
-	boom: { file: "boom.mp3", emoji: "💥" },
-	wow: { file: "wow.mp3", emoji: "😮" },
-	yay: { file: "yay.mp3", emoji: "🎉" },
-} as const satisfies Record<string, MemeSource>;
+export const AUDIO = {
+	"among-us": { source: "among-us.mp3", emoji: "📮" },
+	aww: { source: "aww.mp3", emoji: "🥺" },
+	brb: { source: "be-right-back.mp3", emoji: "🚶" },
+	bluetooth: { source: "bluetooth.mp3", emoji: "📶" },
+	bonk: { source: "bonk.mp3", emoji: "🏏" },
+	bruh: { source: "bruh.mp3", emoji: "😑" },
+	"check-mark": { source: "check-mark.mp3", emoji: "✅" },
+	checkout: { source: "checkout.mp3", emoji: "🛒" },
+	danger: { source: "danger.mp3", emoji: "⚠️" },
+	disappear: { source: "disappear.mp3", emoji: "💨" },
+	discord: { source: "discord.mp3", emoji: "💬" },
+	error: { source: "error.mp3", emoji: "❌" },
+	fbi: { source: "fbi.mp3", emoji: "👮" },
+	fart: { source: "fart-reverb.mp3", emoji: "💩" },
+	"fitness-gram": { source: "fitness-gram.mp3", emoji: "💪" },
+	"hello-there": { source: "hello-there.mp3", emoji: "👋" },
+	hub: { source: "hub-intro.mp3", emoji: "🍑" },
+	huh: { source: "huh.mp3", emoji: "🤔" },
+	incorrect: { source: "incorrect.mp3", emoji: "❌" },
+	knock: { source: "knock.mp3", emoji: "🚪" },
+	meow: { source: "meow.mp3", emoji: "🐱" },
+	"metal-pipe": { source: "metal-pipe.mp3", emoji: "🔧" },
+	mlg: { source: "mlg.mp3", emoji: "📢" },
+	nut: { source: "nut.mp3", emoji: "🥜" },
+	oof: { source: "oof.mp3", emoji: "💀" },
+	piuw: { source: "piuw.mp3", emoji: "🔫" },
+	ps2: { source: "ps2.mp3", emoji: "🎮" },
+	quack: { source: "quack.mp3", emoji: "🦆" },
+	rizz: { source: "rizz.mp3", emoji: "😏" },
+	spooky: { source: "spooky.mp3", emoji: "💀" },
+	stinks: { source: "stinks.mp3", emoji: "💩" },
+	suspense: { source: "suspense.mp3", emoji: "😰" },
+	uwu: { source: "uwu.mp3", emoji: "🥰" },
+	violin: { source: "violin.mp3", emoji: "🎻" },
+	boom: { source: "boom.mp3", emoji: "💥" },
+	wow: { source: "wow.mp3", emoji: "😮" },
+	yay: { source: "yay.mp3", emoji: "🎉" },
+} as const satisfies Record<string, Source>;
 
-export const MEME_VIDEO = {
-	"another-one": { file: "another-one.webm", fit: "cover", position: "bottom" },
-	"moments-later": { file: "a-few-moments-later.mp4", fit: "cover", position: "center" },
-	brb: { file: "be-right-back.webm", fit: "contain", position: "center" },
-	"bing-chilling": { file: "bing-chilling.webm", fit: "contain", position: "bottom left" },
-	crying: { file: "crying.webm", fit: "cover", position: "center" }, // fit height (top and bottom touching)
-	"getting-away-with-it": { file: "getting-away-with-it.webm", fit: "cover", position: "center" },
-	disappointment: { file: "disappointment.webm", fit: "cover", position: "bottom" },
-	"hello-there": { file: "hello-there.webm", fit: "cover", position: "bottom" },
-	hackerman: { file: "hackerman.webm", fit: "contain", position: "bottom" },
-	"aww-shit": { file: "aww-shit.webm", fit: "cover", position: "bottom" },
-	error: { file: "error.webm", fit: "cover", position: "center" },
-	huh: { file: "huh.webm", fit: "cover", position: "center", chroma: "00b733" },
-	kek: { file: "kekw.webm", fit: "cover", position: "bottom right" },
-	instagram: { file: "instagram.webm", fit: "contain", position: "bottom" },
-	maxwell: { file: "maxwell.webm", fit: "cover", position: "center" },
-	nice: { file: "nice.webm", fit: "cover", position: "bottom right" },
-	oiia: { file: "oiia.webm", fit: "cover", position: "center" },
-	"no-god": { file: "no-god-no.webm", fit: "cover", position: "bottom left" },
-	continued: { file: "continued.webm", fit: "cover", position: "bottom left" },
-	reformed: { file: "reformed.webm", fit: "cover", position: "bottom" },
-	"do-it": { file: "do-it.webm", fit: "cover", position: "bottom" },
-	thick: { file: "thick.webm", fit: "cover", position: "bottom" },
-	"yeah-baby": { file: "yeah-baby.webm", fit: "cover", position: "center" },
-	"thug-life": { file: "thug-life.webm", fit: "contain", position: "center" },
-	"giga-chad": { file: "giga-chad.webm", fit: "cover", position: "center" },
-	okay: { file: "okay.webm", fit: "contain", position: "right" }, // cover with right edge visible, left can crop
+export const VIDEO = {
+	"another-one": {
+		source: [
+			{ file: "another-one.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "another-one.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "another-one.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"moments-later": {
+		source: "a-few-moments-later.mp4",
+		thumbnail: "a-few-moments-later.png",
+		fit: "cover",
+		position: "center",
+	},
+	brb: {
+		source: [
+			{ file: "be-right-back.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "be-right-back.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "be-right-back.png",
+		fit: "contain",
+		position: "center",
+	},
+	"bing-chilling": {
+		source: [
+			{ file: "bing-chilling.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "bing-chilling.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "bing-chilling.png",
+		fit: "contain",
+		position: "bottom left",
+	},
+	crying: {
+		source: [
+			{ file: "crying.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "crying.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "crying.png",
+		fit: "cover",
+		position: "center",
+	},
+	"getting-away-with-it": {
+		source: [
+			{ file: "getting-away-with-it.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "getting-away-with-it.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "getting-away-with-it.png",
+		fit: "cover",
+		position: "center",
+	},
+	disappointment: {
+		source: [
+			{ file: "disappointment.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "disappointment.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "disappointment.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"hello-there": {
+		source: [
+			{ file: "hello-there.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "hello-there.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "hello-there.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	hackerman: {
+		source: [
+			{ file: "hackerman.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "hackerman.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "hackerman.png",
+		fit: "contain",
+		position: "bottom",
+	},
+	"aww-shit": {
+		source: [
+			{ file: "aww-shit.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "aww-shit.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "aww-shit.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	error: {
+		source: [
+			{ file: "error.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "error.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "error.png",
+		fit: "cover",
+		position: "center",
+	},
+	huh: {
+		source: [
+			{ file: "huh.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "huh.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "huh.png",
+		fit: "cover",
+		position: "center",
+		chroma: "00b733",
+	},
+	kek: {
+		source: [
+			{ file: "kekw.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "kekw.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "kekw.png",
+		fit: "cover",
+		position: "bottom right",
+	},
+	instagram: {
+		source: [
+			{ file: "instagram.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "instagram.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "instagram.png",
+		fit: "contain",
+		position: "bottom",
+	},
+	maxwell: {
+		source: [
+			{ file: "maxwell.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "maxwell.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "maxwell.png",
+		fit: "cover",
+		position: "center",
+	},
+	nice: {
+		source: [
+			{ file: "nice.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "nice.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "nice.png",
+		fit: "cover",
+		position: "bottom right",
+	},
+	oiia: {
+		source: [
+			{ file: "oiia.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "oiia.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "oiia.png",
+		fit: "cover",
+		position: "center",
+	},
+	"no-god": {
+		source: [
+			{ file: "no-god-no.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "no-god-no.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "no-god-no.png",
+		fit: "cover",
+		position: "bottom left",
+	},
+	continued: {
+		source: [
+			{ file: "continued.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "continued.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "continued.png",
+		fit: "cover",
+		position: "bottom left",
+	},
+	reformed: {
+		source: [
+			{ file: "reformed.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "reformed.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "reformed.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"do-it": {
+		source: [
+			{ file: "do-it.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "do-it.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "do-it.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	thick: {
+		source: [
+			{ file: "thick.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "thick.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "thick.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"yeah-baby": {
+		source: [
+			{ file: "yeah-baby.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "yeah-baby.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "yeah-baby.png",
+		fit: "cover",
+		position: "center",
+	},
+	"thug-life": {
+		source: [
+			{ file: "thug-life.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "thug-life.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "thug-life.png",
+		fit: "contain",
+		position: "center",
+	},
+	"giga-chad": {
+		source: [
+			{ file: "giga-chad.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "giga-chad.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "giga-chad.png",
+		fit: "cover",
+		position: "center",
+	},
+	okay: {
+		source: [
+			{ file: "okay.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "okay.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "okay.png",
+		fit: "contain",
+		position: "right",
+	},
 	// TODO: It should go over the screenshare, not the webcam, and should be in the top right corner.
-	// "speedrun": { file: "speedrun.webm" },
-	"pizza-time": { file: "pizza-time.webm", fit: "cover", position: "bottom" }, // cover with bottom visible, top can crop
-	"stop-it": { file: "stop-it.webm", fit: "cover", position: "bottom" },
-	"you-died": { file: "you-died.webm", fit: "cover", position: "center" }, // fill width, top/bottom can crop
-	"real-estate": { file: "real-estate.webm", fit: "cover", position: "center" }, // fit height, left/right can letterbox
-	waw: { file: "waw.webm", fit: "cover", position: "bottom" },
-	zzz: { file: "zzz.webm", fit: "cover", position: "center" },
-} as const satisfies Record<string, MemeSource>;
+	// "speedrun": { source: [{ file: "speedrun.webm", mime: 'video/webm; codecs="vp9"' }] },
+	"pizza-time": {
+		source: [
+			{ file: "pizza-time.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "pizza-time.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "pizza-time.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"stop-it": {
+		source: [
+			{ file: "stop-it.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "stop-it.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "stop-it.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	"you-died": {
+		source: [
+			{ file: "you-died.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "you-died.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "you-died.png",
+		fit: "cover",
+		position: "center",
+	},
+	"real-estate": {
+		source: [
+			{ file: "real-estate.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "real-estate.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "real-estate.png",
+		fit: "cover",
+		position: "center",
+	},
+	waw: {
+		source: [
+			{ file: "waw.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "waw.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "waw.png",
+		fit: "cover",
+		position: "bottom",
+	},
+	zzz: {
+		source: [
+			{ file: "zzz.webm", mime: 'video/webm; codecs="vp9"' },
+			{ file: "zzz.mp4", mime: 'video/mp4; codecs="avc1.42E01E"' },
+		],
+		thumbnail: "zzz.png",
+		fit: "cover",
+		position: "center",
+	},
+} as const satisfies Record<string, Source>;
 
-export type MemeAudioName = keyof typeof MEME_AUDIO;
-export type MemeVideoName = keyof typeof MEME_VIDEO;
+export type AudioName = keyof typeof AUDIO;
+export type VideoName = keyof typeof VIDEO;
 
 // Lookup tables for slash commands (without hyphens)
-export const MEME_AUDIO_LOOKUP: Record<string, MemeAudioName> = {};
-export const MEME_VIDEO_LOOKUP: Record<string, MemeVideoName> = {};
+export const AUDIO_LOOKUP: Record<string, AudioName> = {};
+export const VIDEO_LOOKUP: Record<string, VideoName> = {};
 
 // Build lookup tables for slash commands without hyphens
-for (const [key] of Object.entries(MEME_AUDIO)) {
+for (const [key] of Object.entries(AUDIO)) {
 	const lookupKey = key.replace(/-/g, "");
-	MEME_AUDIO_LOOKUP[lookupKey] = key as MemeAudioName;
+	AUDIO_LOOKUP[lookupKey] = key as AudioName;
 }
 
-for (const [key] of Object.entries(MEME_VIDEO)) {
+for (const [key] of Object.entries(VIDEO)) {
 	const lookupKey = key.replace(/-/g, "");
-	MEME_VIDEO_LOOKUP[lookupKey] = key as MemeVideoName;
+	VIDEO_LOOKUP[lookupKey] = key as VideoName;
 }
 
 // Popular emojis organized by category - expanded set
@@ -1011,3 +1275,68 @@ export const EMOJI_CATEGORIES = {
 } as const;
 
 export const ALL_EMOJIS = Object.values(EMOJI_CATEGORIES).flat();
+
+export function audio(name: string): Audio | undefined {
+	// Make the name lowercase and remove hyphens for lookup
+	const lower = name.toLowerCase();
+	const lookupKey = lower.replace(/-/g, "");
+
+	// Check lookup tables first (for slash commands without hyphens)
+	const audioKey = AUDIO_LOOKUP[lookupKey] || (lower as AudioName);
+	const audioSource = AUDIO[audioKey];
+	if (!audioSource) return undefined;
+
+	const audio = document.createElement("audio") as HTMLAudioElement;
+	audio.src = new URL(`/meme/${audioSource.source}`, import.meta.env.VITE_APP_URL).toString();
+	audio.autoplay = true;
+	audio.muted = true;
+	audio.load();
+
+	return { element: audio, source: audioSource };
+}
+
+export function video(name: string): Video | undefined {
+	const lower = name.toLowerCase();
+	const lookupKey = lower.replace(/-/g, "");
+	const videoKey = VIDEO_LOOKUP[lookupKey] || (lower as VideoName);
+	const videoSource = VIDEO[videoKey];
+
+	if (!videoSource) return undefined;
+	const video = document.createElement("video") as HTMLVideoElement;
+
+	let source: string | undefined;
+
+	if (Array.isArray(videoSource.source)) {
+		// Find the first supported format
+		source = videoSource.source.find((source) => {
+			const canPlay = video.canPlayType(source.mime);
+			return canPlay === "probably" || canPlay === "maybe";
+		})?.file;
+	} else {
+		source = videoSource.source;
+	}
+
+	if (!source) {
+		console.warn(`No supported video format found for meme: ${name}`);
+		return undefined;
+	}
+
+	video.crossOrigin = "anonymous";
+	video.src = new URL(`/meme/${source}`, import.meta.env.VITE_APP_URL).toString();
+	video.muted = true;
+	video.autoplay = true;
+	video.playsInline = true;
+	video.style.objectFit = videoSource.fit || "contain";
+	video.style.objectPosition = videoSource.position || "center";
+	video.load();
+
+	return { element: video, source: videoSource };
+}
+
+// NOTE: We don't cache elements because the browser will.
+// Otherwise it would be a pain in the butt to manage if the same meme is played simultaneously.
+export function load(name: string): AV | undefined {
+	const v = video(name);
+	if (v) return v;
+	return audio(name);
+}

@@ -7,7 +7,7 @@ import { Chat } from "./chat";
 import { FakeBroadcast } from "./fake";
 import { Bounds, Vector } from "./geometry";
 import { MeshBuffer } from "./gl/mesh";
-import { Meme } from "./meme";
+import * as Meme from "./meme";
 import { Name } from "./name";
 import { Sound } from "./sound";
 import { Video } from "./video";
@@ -81,7 +81,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 	position: Signal<Position>;
 
 	// The meme video/audio we're rendering, if any.
-	meme = new Signal<Meme | undefined>(undefined);
+	meme = new Signal<Meme.AV | undefined>(undefined);
 
 	scale: Signal<number>; // room scale, 1 is 100%
 	zoom = new Signal<number>(1.0); // local zoom, 1 is 100%
@@ -175,8 +175,14 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		// First, try to match the message to a known video/sound file.
 		if (msg.startsWith("/")) {
 			const memeName = msg.slice(1);
-			const meme = this.audio.sound.meme(memeName);
+
+			const meme = Meme.load(memeName);
 			if (meme) {
+				effect.effect((effect) => {
+					meme.element.muted = !effect.get(this.audio.sound.parent.enabled);
+				});
+				effect.cleanup(() => meme.element.pause());
+
 				this.meme.update((prev) => {
 					prev?.element.pause();
 					return meme;

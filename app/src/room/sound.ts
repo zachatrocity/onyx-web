@@ -119,18 +119,8 @@ export class Sound {
 	}
 }
 
-import {
-	MEME_AUDIO,
-	MEME_AUDIO_LOOKUP,
-	MEME_VIDEO,
-	MEME_VIDEO_LOOKUP,
-	Meme,
-	MemeAudioName,
-	MemeVideoName,
-} from "./meme";
-
 export class PannedNotifications {
-	#parent: Sound;
+	parent: Sound;
 	#panner: StereoPannerNode;
 
 	// Optional, disabled in potato mode.
@@ -142,7 +132,7 @@ export class PannedNotifications {
 	#signals = new Effect();
 
 	constructor(parent: Sound, pan: Signal<number>) {
-		this.#parent = parent;
+		this.parent = parent;
 
 		this.#panner = new StereoPannerNode(parent.context);
 		this.#panner.connect(parent.gain);
@@ -150,7 +140,7 @@ export class PannedNotifications {
 		this.pan = pan;
 
 		// Always create the analyser
-		const analyser = new AnalyserNode(this.#parent.context, { fftSize: this.#buffer.length });
+		const analyser = new AnalyserNode(this.parent.context, { fftSize: this.#buffer.length });
 		this.#panner.connect(analyser);
 		this.analyser = analyser;
 
@@ -163,69 +153,21 @@ export class PannedNotifications {
 	}
 
 	async notification(sound: NotificationSound) {
-		if (!this.#parent.enabled.peek()) return;
+		if (!this.parent.enabled.peek()) return;
 
-		const buffer = await this.#parent.load(sound);
+		const buffer = await this.parent.load(sound);
 
-		const source = new AudioBufferSourceNode(this.#parent.context, { buffer });
+		const source = new AudioBufferSourceNode(this.parent.context, { buffer });
 		source.connect(this.#panner);
 
 		// TODO: For some reason, sounds don't play correctly on startup.
 		// Add a 200ms delay for startup only, abusing that currentTime starts at 0.
-		const when = Math.max(this.#parent.context.currentTime, 0.2);
+		const when = Math.max(this.parent.context.currentTime, 0.2);
 		source.start(when);
 	}
 
-	// NOTE: We don't cache elements because the browser will.
-	// Otherwise it would be a pain in the butt to manage if the same meme is played simultaneously.
-	meme(name: string): Meme | undefined {
-		// Make the name lowercase and remove hyphens for lookup
-		const lower = name.toLowerCase();
-		const lookupKey = lower.replace(/-/g, "");
-
-		// Check lookup tables first (for slash commands without hyphens)
-		const videoKey = MEME_VIDEO_LOOKUP[lookupKey] || (lower as MemeVideoName);
-		const audioKey = MEME_AUDIO_LOOKUP[lookupKey] || (lower as MemeAudioName);
-
-		const videoSource = MEME_VIDEO[videoKey];
-		const audioSource = MEME_AUDIO[audioKey];
-
-		// Use the video if it's available
-		if (videoSource) {
-			const video = document.createElement("video") as HTMLVideoElement;
-			video.crossOrigin = "anonymous";
-			video.src = new URL(`/meme/${videoSource.file}`, import.meta.env.VITE_APP_URL).toString();
-
-			if (!this.#parent.enabled.peek()) {
-				video.muted = true;
-				this.#signals.effect((effect) => {
-					video.muted = !effect.get(this.#parent.enabled);
-				});
-			}
-
-			video.autoplay = true;
-			video.playsInline = true;
-			video.load();
-			video.play();
-			return { element: video, source: videoSource };
-		}
-
-		if (audioSource) {
-			const audio = new Audio(new URL(`/meme/${audioSource.file}`, import.meta.env.VITE_APP_URL).toString());
-			audio.autoplay = true;
-			audio.muted = !this.#parent.enabled.peek();
-			this.#signals.effect((effect) => {
-				audio.muted = !effect.get(this.#parent.enabled);
-			});
-			audio.load();
-			return { element: audio, source: audioSource };
-		}
-
-		return undefined;
-	}
-
 	get context() {
-		return this.#parent.context;
+		return this.parent.context;
 	}
 
 	connect(node: AudioNode) {

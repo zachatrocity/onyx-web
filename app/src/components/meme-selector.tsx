@@ -2,7 +2,7 @@ import type { Publish } from "@kixelated/hang";
 import solid from "@kixelated/signals/solid";
 import { createSignal, For, onCleanup, onMount, type Setter, Show } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";
-import { EMOJI_CATEGORIES, MEME_AUDIO, MEME_VIDEO, MemeVideoName } from "../room/meme";
+import * as Meme from "../room/meme";
 import Settings from "../settings";
 
 export type Tab = "emoji" | "audio" | "video";
@@ -18,16 +18,16 @@ export type MemeSelectorProps = {
 export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 	// Get the initial tab from localStorage, default to "emoji"
 	const activeTab = solid(Settings.meme.tab);
-	const [previewAudio, setPreviewAudio] = createSignal<HTMLAudioElement | null>(null);
-	const [previewVideo, setPreviewVideo] = createSignal<HTMLVideoElement | null>(null);
+	const [previewAudio, setPreviewAudio] = createSignal<Meme.Audio | null>(null);
+	const [previewVideo, setPreviewVideo] = createSignal<Meme.Video | null>(null);
 	const [playingVideoMeme, setPlayingVideoMeme] = createSignal<string | null>(null);
 	const [playingAudioMeme, setPlayingAudioMeme] = createSignal<string | null>(null);
 	const [modal, setModal] = createSignal<HTMLDivElement | undefined>(undefined);
 
 	// Clean up any playing previews when component unmounts
 	onCleanup(() => {
-		previewAudio()?.pause();
-		previewVideo()?.pause();
+		previewAudio()?.element.pause();
+		previewVideo()?.element.pause();
 	});
 
 	// Close on escape key
@@ -94,64 +94,57 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 		// Check if this meme is already playing
 		if (type === "audio" && playingAudioMeme() === memeName) {
 			// Stop the audio
-			previewAudio()?.pause();
+			previewAudio()?.element.pause();
 			setPreviewAudio(null);
 			setPlayingAudioMeme(null);
 			return;
 		}
 		if (type === "video" && playingVideoMeme() === memeName) {
 			// Stop the video
-			previewVideo()?.pause();
-			previewVideo()?.remove();
+			previewVideo()?.element.pause();
+			previewVideo()?.element.remove();
 			setPreviewVideo(null);
 			setPlayingVideoMeme(null);
 			return;
 		}
 
 		// Stop any existing preview
-		previewAudio()?.pause();
-		previewVideo()?.pause();
+		previewAudio()?.element.pause();
+		previewVideo()?.element.pause();
 		setPreviewAudio(null);
 		setPreviewVideo(null);
 		setPlayingVideoMeme(null);
 		setPlayingAudioMeme(null);
 
+
 		if (type === "audio") {
-			const audio = new Audio(
-				new URL(
-					`/meme/${MEME_AUDIO[memeName as keyof typeof MEME_AUDIO].file}`,
-					import.meta.env.VITE_APP_URL,
-				).toString(),
-			);
-			audio.volume = 0.5; // Lower volume for preview
-			audio.play();
+			const audio = Meme.audio(memeName);
+			if (!audio) throw new Error(`Audio meme not found: ${memeName}`);
+
+			audio.element.volume = 0.5; // Lower volume for preview
+			audio.element.play();
+
 			setPreviewAudio(audio);
 			setPlayingAudioMeme(memeName);
 
 			// Clean up when done
-			audio.onended = () => {
+			audio.element.onended = () => {
 				setPreviewAudio(null);
 				setPlayingAudioMeme(null);
 			};
 		} else {
-			// For video, play with sound
-			const video = document.createElement("video");
-			video.crossOrigin = "anonymous";
-			video.src = new URL(
-				`/meme/${MEME_VIDEO[memeName as keyof typeof MEME_VIDEO].file}`,
-				import.meta.env.VITE_APP_URL,
-			).toString();
-			video.volume = 0.5;
-			video.style.display = "none";
-			document.body.appendChild(video);
-			video.playsInline = true;
-			video.play();
+			const video = Meme.video(memeName);
+			if (!video) throw new Error(`Video meme not found: ${memeName}`);
+
+			video.element.volume = 0.5;
+			video.element.style.display = "none";
+			document.body.appendChild(video.element);
 			setPreviewVideo(video);
 			setPlayingVideoMeme(memeName);
 
 			// Clean up when done
-			video.onended = () => {
-				video.remove();
+			video.element.onended = () => {
+				video.element.remove();
 				setPreviewVideo(null);
 				setPlayingVideoMeme(null);
 			};
@@ -160,14 +153,14 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 
 	const sortedAudioMemes = () => {
 		// Filter out audio memes that have corresponding video versions
-		const videoMemeNames = Object.keys(MEME_VIDEO);
-		return Object.keys(MEME_AUDIO)
+		const videoMemeNames = Object.keys(Meme.VIDEO);
+		return Object.keys(Meme.AUDIO)
 			.filter((name) => !videoMemeNames.includes(name))
 			.sort();
 	};
 
 	const sortedVideoMemes = () => {
-		return Object.keys(MEME_VIDEO).sort();
+		return Object.keys(Meme.VIDEO).sort();
 	};
 
 	return (
@@ -239,7 +232,7 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 				{/* Emoji Grid */}
 				<Show when={activeTab() === "emoji"}>
 					<div class="space-y-4">
-						<For each={Object.entries(EMOJI_CATEGORIES)}>
+						<For each={Object.entries(Meme.EMOJI_CATEGORIES)}>
 							{([category, emojis]) => (
 								<div>
 									<div class="text-xs text-white/40 uppercase tracking-wider mb-2">{category}</div>
@@ -268,7 +261,7 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 					<div class="flex flex-wrap gap-2">
 						<For each={sortedAudioMemes()}>
 							{(meme) => {
-								const memeData = MEME_AUDIO[meme as keyof typeof MEME_AUDIO];
+								const memeData = Meme.AUDIO[meme as keyof typeof Meme.AUDIO];
 								const isPlaying = () => playingAudioMeme() === meme;
 								return (
 									<div class="group relative bg-white/10 hover:bg-white/20 rounded p-3 transition-colors cursor-pointer basis-34 flex-grow">
@@ -313,15 +306,15 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 					<div class="flex flex-wrap gap-2">
 						<For each={sortedVideoMemes()}>
 							{(meme) => {
-								const memeData = MEME_VIDEO[meme as MemeVideoName];
-								const thumbnailName = memeData.file.replace(/\.(webm|mp4)$/, ".png");
+								const memeData = Meme.VIDEO[meme as Meme.VideoName];
+
 								const isPlaying = () => playingVideoMeme() === meme;
 								return (
 									<div class="group relative bg-white/10 hover:bg-white/20 rounded overflow-hidden transition-colors cursor-pointer aspect-video basis-42 flex-grow">
 										{/* Thumbnail background */}
 										<img
 											src={new URL(
-												`/meme/${thumbnailName}`,
+												`/meme/${memeData.thumbnail}`,
 												import.meta.env.VITE_APP_URL,
 											).toString()}
 											alt={meme}
@@ -333,19 +326,18 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 										/>
 										{/* Video preview when playing */}
 										<Show when={isPlaying()}>
-											<video
-												src={new URL(
-													`/meme/${memeData.file}`,
-													import.meta.env.VITE_APP_URL,
-												).toString()}
-												autoplay
-												muted
-												class="absolute inset-0 w-full h-full opacity-70"
-												style={{
-													"object-fit": memeData.fit,
-													"object-position": memeData.position,
-												}}
-											/>
+											{(_) => {
+												const video = Meme.video(meme);
+												if (!video) throw new Error(`Video meme not found: ${meme}`);
+
+												video.element.muted = false;
+												onCleanup(() => {
+													video.element.pause()
+												});
+
+												// class="absolute inset-0 w-full h-full opacity-70"
+												return video.element;
+											}}
 										</Show>
 										<button
 											type="button"
