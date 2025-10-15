@@ -180,7 +180,9 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 			if (meme) {
 				// NOTE: We only do this on a new meme so the previous one keeps playing during chat.
 				this.meme.update((prev) => {
-					prev?.element.pause();
+					if (prev && "element" in prev) {
+						prev.element.pause();
+					}
 					return meme;
 				});
 

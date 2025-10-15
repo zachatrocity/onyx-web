@@ -173,7 +173,7 @@ export class BroadcastRenderer {
 
 		// Bind meme texture if available
 		const memeTexture = broadcast.video.memeTexture;
-		const memeBounds = broadcast.video.memeBounds;
+		const memeBounds = broadcast.video.memeBounds.peek();
 
 		gl.activeTexture(gl.TEXTURE2);
 		gl.bindTexture(gl.TEXTURE_2D, memeTexture);

@@ -79,76 +79,13 @@ function EmojiTab(props: EmojiTabProps): JSX.Element {
 
 type AudioMemeItemProps = {
 	name: Meme.AudioName;
-	data: Meme.Source;
+	info: Meme.Audio;
 	onSend: (memeName: string) => void;
-	currentlyPlaying: string | null;
-	onPreviewStart: (name: string) => void;
+	playing: string | null;
+	setPlaying: (name: string | null) => void;
 };
 
 function AudioMemeItem(props: AudioMemeItemProps): JSX.Element {
-	const [preview, setPreview] = createSignal<Meme.Audio | null>(null);
-
-	const stopPreview = () => {
-		const current = preview();
-		if (current) {
-			current.element.pause();
-			setPreview(null);
-		}
-	};
-
-	// Stop preview when another meme starts playing
-	createEffect(() => {
-		if (props.currentlyPlaying !== null && props.currentlyPlaying !== props.name) {
-			stopPreview();
-		}
-	});
-
-	onCleanup(() => {
-		stopPreview();
-	});
-
-	const togglePreview = () => {
-		const current = preview();
-		if (current) {
-			stopPreview();
-			// Only clear if this was the currently playing meme
-			if (props.currentlyPlaying === props.name) {
-				props.onPreviewStart("");
-			}
-		} else {
-			// Notify parent to stop other previews
-			props.onPreviewStart(props.name);
-
-			// Start playing
-			const audio = Meme.audio(props.name);
-			if (!audio) throw new Error(`Audio meme not found: ${props.name}`);
-
-			audio.element.volume = Settings.audio.volume.peek();
-			audio.element.muted = false;
-			audio.element.play();
-
-			setPreview(audio);
-
-			// Clean up when done
-			audio.element.onended = () => {
-				setPreview(null);
-				// Only clear if this is still the currently playing meme
-				if (props.currentlyPlaying === props.name) {
-					props.onPreviewStart("");
-				}
-			};
-			audio.element.onpause = () => {
-				setPreview(null);
-				// Only clear if this is still the currently playing meme
-				if (props.currentlyPlaying === props.name) {
-					props.onPreviewStart("");
-				}
-			};
-		}
-	};
-
-	const isPlaying = () => preview() !== null;
-
 	return (
 		<div class="group relative bg-white/10 hover:bg-white/20 rounded p-3 transition-colors cursor-pointer basis-34 flex-grow">
 			<button
@@ -157,24 +94,28 @@ function AudioMemeItem(props: AudioMemeItemProps): JSX.Element {
 				class="w-full text-left text-sm truncate text-white cursor-pointer flex items-center gap-2"
 				title={`Send /${props.name}`}
 			>
-				<span class="text-lg">{props.data.emoji}</span>
+				<span class="text-lg">{props.info.emoji}</span>
 				<span>/{props.name}</span>
 			</button>
 			<button
 				type="button"
 				onClick={(e) => {
 					e.stopPropagation();
-					togglePreview();
+					props.setPlaying(props.playing === props.name ? null : props.name);
 				}}
 				class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-white/20 hover:bg-white/30 rounded transition-opacity cursor-pointer [@media(pointer:coarse)]:opacity-100"
 				classList={{
-					"opacity-100": isPlaying(),
-					"opacity-0 group-hover:opacity-100": !isPlaying(),
+					"opacity-100": props.playing === props.name,
+					"opacity-0 group-hover:opacity-100": props.playing !== props.name,
 				}}
-				title={isPlaying() ? "Stop" : "Preview"}
+				title={props.playing === props.name ? "Stop" : "Preview"}
 			>
-				<Show when={isPlaying()} fallback={<span class="icon-[mdi--play] w-4 h-4 text-white" />}>
+				<Show
+					when={props.playing === props.name}
+					fallback={<span class="icon-[mdi--play] w-4 h-4 text-white" />}
+				>
 					<span class="icon-[mdi--pause] w-4 h-4 text-white" />
+					<audio src={props.info.url} autoplay onended={() => props.setPlaying(null)} />
 				</Show>
 			</button>
 		</div>
@@ -187,8 +128,8 @@ function AudioMemeItem(props: AudioMemeItemProps): JSX.Element {
 
 type AudioTabProps = {
 	onSend: (memeName: string) => void;
-	currentlyPlaying: string | null;
-	onPreviewStart: (name: string) => void;
+	playing: string | null;
+	setPlaying: (name: string | null) => void;
 };
 
 function AudioTab(props: AudioTabProps): JSX.Element {
@@ -204,14 +145,14 @@ function AudioTab(props: AudioTabProps): JSX.Element {
 		<div class="flex flex-wrap gap-2">
 			<For each={sortedAudioMemes()}>
 				{(meme) => {
-					const memeData = Meme.AUDIO[meme as keyof typeof Meme.AUDIO];
+					const info = Meme.audio(meme);
 					return (
 						<AudioMemeItem
 							name={meme}
-							data={memeData}
+							info={info}
 							onSend={props.onSend}
-							currentlyPlaying={props.currentlyPlaying}
-							onPreviewStart={props.onPreviewStart}
+							playing={props.playing}
+							setPlaying={props.setPlaying}
 						/>
 					);
 				}}
@@ -226,10 +167,10 @@ function AudioTab(props: AudioTabProps): JSX.Element {
 
 type VideoMemeItemProps = {
 	name: Meme.VideoName;
-	data: Meme.Source;
+	data: Meme.VideoSource;
 	onSend: (memeName: string) => void;
-	currentlyPlaying: string | null;
-	onPreviewStart: (name: string) => void;
+	playing: string | null;
+	setPlaying: (name: string | null) => void;
 };
 
 function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
@@ -247,7 +188,7 @@ function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
 
 	// Stop preview when another meme starts playing
 	createEffect(() => {
-		if (props.currentlyPlaying !== null && props.currentlyPlaying !== props.name) {
+		if (props.playing !== null && props.playing !== props.name) {
 			stopPreview();
 		}
 	});
@@ -261,12 +202,12 @@ function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
 		if (current) {
 			stopPreview();
 			// Only clear if this was the currently playing meme
-			if (props.currentlyPlaying === props.name) {
-				props.onPreviewStart("");
+			if (props.playing === props.name) {
+				props.setPlaying(null);
 			}
 		} else {
 			// Notify parent to stop other previews
-			props.onPreviewStart(props.name);
+			props.setPlaying(props.name);
 
 			// Start playing
 			const video = Meme.video(props.name);
@@ -295,16 +236,16 @@ function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
 				video.element.remove();
 				setPreview(null);
 				// Only clear if this is still the currently playing meme
-				if (props.currentlyPlaying === props.name) {
-					props.onPreviewStart("");
+				if (props.playing === props.name) {
+					props.setPlaying("");
 				}
 			};
 			video.element.onpause = () => {
 				video.element.remove();
 				setPreview(null);
 				// Only clear if this is still the currently playing meme
-				if (props.currentlyPlaying === props.name) {
-					props.onPreviewStart("");
+				if (props.playing === props.name) {
+					props.setPlaying("");
 				}
 			};
 		}
@@ -362,8 +303,8 @@ function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
 
 type VideoTabProps = {
 	onSend: (memeName: string) => void;
-	currentlyPlaying: string | null;
-	onPreviewStart: (name: string) => void;
+	playing: string | null;
+	setPlaying: (name: string | null) => void;
 };
 
 function VideoTab(props: VideoTabProps): JSX.Element {
@@ -381,8 +322,8 @@ function VideoTab(props: VideoTabProps): JSX.Element {
 							name={meme}
 							data={memeData}
 							onSend={props.onSend}
-							currentlyPlaying={props.currentlyPlaying}
-							onPreviewStart={props.onPreviewStart}
+							playing={props.playing}
+							setPlaying={props.setPlaying}
 						/>
 					);
 				}}
@@ -520,19 +461,11 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 				</Show>
 
 				<Show when={activeTab() === "audio"}>
-					<AudioTab
-						onSend={sendMeme}
-						currentlyPlaying={currentlyPlaying()}
-						onPreviewStart={setCurrentlyPlaying}
-					/>
+					<AudioTab onSend={sendMeme} playing={currentlyPlaying()} setPlaying={setCurrentlyPlaying} />
 				</Show>
 
 				<Show when={activeTab() === "video"}>
-					<VideoTab
-						onSend={sendMeme}
-						currentlyPlaying={currentlyPlaying()}
-						onPreviewStart={setCurrentlyPlaying}
-					/>
+					<VideoTab onSend={sendMeme} playing={currentlyPlaying()} setPlaying={setCurrentlyPlaying} />
 				</Show>
 			</div>
 		</div>

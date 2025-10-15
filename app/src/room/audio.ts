@@ -2,6 +2,7 @@ import { Publish, Watch } from "@kixelated/hang";
 import { Effect, Signal } from "@kixelated/signals";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
+import * as Meme from "./meme";
 import { PannedNotifications as PannedSound, Sound } from "./sound";
 
 const FADE_TIME = 0.2;
@@ -40,33 +41,7 @@ export class Audio {
 
 		this.sound = new PannedSound(sound, this.pan);
 
-		this.#signals.effect((effect) => {
-			const meme = effect.get(this.broadcast.meme);
-			if (!meme) return;
-		});
-
-		this.#signals.effect((effect) => {
-			const meme = effect.get(this.broadcast.meme);
-			if (!meme) return;
-
-			effect.effect((effect) => {
-				// Toggle the muted state
-				meme.element.muted = !effect.get(this.sound.parent.enabled);
-			});
-
-			const source = this.sound.media(meme.element);
-			effect.cleanup(() => source.disconnect());
-
-			// Start playing once connected.
-			meme.element.play().catch((err) => {
-				console.error("Meme audio failed to play:", err);
-			});
-
-			// Only start playing after we've connected the audio.
-			effect.cleanup(() => {
-				meme.element.pause();
-			});
-		});
+		this.#signals.effect(this.#runMeme.bind(this));
 
 		this.#signals.effect((effect) => {
 			const root = effect.get(this.broadcast.source.audio.root);
@@ -115,6 +90,45 @@ export class Audio {
 		if (!(this.broadcast.source instanceof Publish.Broadcast)) {
 			this.#signals.effect(this.#runOutput.bind(this));
 		}
+	}
+
+	#runMeme(effect: Effect) {
+		const meme = effect.get(this.broadcast.meme);
+		if (!meme) return;
+
+		if ("element" in meme) {
+			this.#runMemeVideo(effect, meme);
+		} else {
+			effect.spawn(this.#runMemeAudio.bind(this, effect, meme));
+		}
+	}
+
+	#runMemeVideo(effect: Effect, meme: Meme.Video) {
+		effect.effect((effect) => {
+			// Toggle the muted state
+			meme.element.muted = !effect.get(this.sound.parent.enabled);
+		});
+
+		const source = this.sound.media(meme.element);
+		effect.cleanup(() => source.disconnect());
+
+		// Start playing once connected.
+		meme.element.play().catch((err) => {
+			console.error("Meme audio failed to play:", err);
+		});
+
+		// Only start playing after we've connected the audio.
+		effect.cleanup(() => meme.element.pause());
+	}
+
+	async #runMemeAudio(effect: Effect, meme: Meme.Audio) {
+		// We can't use HTMLAudioElement because iOS requires user interaction to play.
+		const node = await this.sound.load(meme.url);
+		effect.cleanup(() => node.disconnect());
+
+		effect.event(node, "ended", () => {
+			this.broadcast.meme.set(undefined);
+		});
 	}
 
 	#runOutput(effect: Effect) {

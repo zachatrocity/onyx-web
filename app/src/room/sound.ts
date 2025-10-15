@@ -34,7 +34,7 @@ export class Sound {
 	context: AudioContext;
 	gain: GainNode;
 
-	#sounds: Map<NotificationSound, Promise<AudioBuffer[]>>;
+	#notifications: Map<NotificationSound, Promise<AudioBuffer[]>>;
 	#signals = new Effect();
 
 	constructor(props?: SoundProps) {
@@ -47,7 +47,8 @@ export class Sound {
 		this.gain = new GainNode(this.context);
 		this.gain.connect(this.context.destination);
 
-		const sounds = new Map();
+		// TODO only start loading once unmuted.
+		const notifications = new Map();
 
 		for (const [sound, url] of Object.entries(NOTIFICATIONS)) {
 			const urls = Array.isArray(url) ? url : [url];
@@ -58,10 +59,10 @@ export class Sound {
 					return await this.context.decodeAudioData(data);
 				}),
 			);
-			sounds.set(sound, load);
+			notifications.set(sound, load);
 		}
 
-		this.#sounds = sounds;
+		this.#notifications = notifications;
 
 		this.#signals.effect(this.#runGain.bind(this));
 	}
@@ -82,8 +83,8 @@ export class Sound {
 	}
 
 	// Return a buffer for the sound, randomly selecting one if there are multiple.
-	async notificationSource(sound: NotificationSound): Promise<AudioBufferSourceNode> {
-		const buffers = await this.#sounds.get(sound);
+	async notificationNode(sound: NotificationSound): Promise<AudioBufferSourceNode> {
+		const buffers = await this.#notifications.get(sound);
 		if (!buffers) throw new Error(`Sound "${String(sound)}" not loaded`);
 		const buffer = buffers[Math.floor(Math.random() * buffers.length)];
 		return new AudioBufferSourceNode(this.context, { buffer });
@@ -92,9 +93,15 @@ export class Sound {
 	async notification(sound: NotificationSound) {
 		if (this.enabled.peek()) return;
 
-		const source = await this.notificationSource(sound);
+		const source = await this.notificationNode(sound);
 		source.connect(this.context.destination);
 		source.start();
+	}
+
+	async load(url: string): Promise<AudioBuffer> {
+		const response = await fetch(url);
+		const data = await response.arrayBuffer();
+		return await this.context.decodeAudioData(data);
 	}
 
 	// Called on click to reinitialize the audio context.
@@ -145,7 +152,7 @@ export class PannedNotifications {
 	}
 
 	async notification(sound: NotificationSound) {
-		const source = await this.parent.notificationSource(sound);
+		const source = await this.parent.notificationNode(sound);
 		source.connect(this.#panner);
 
 		// TODO: For some reason, sounds don't play correctly on startup.
@@ -158,6 +165,16 @@ export class PannedNotifications {
 		const source = new MediaElementAudioSourceNode(this.parent.context, { mediaElement: element });
 		source.connect(this.#panner);
 		return source;
+	}
+
+	async load(url: string): Promise<AudioBufferSourceNode> {
+		const response = await fetch(url);
+		const data = await response.arrayBuffer();
+		const buffer = await this.parent.context.decodeAudioData(data);
+		const node = new AudioBufferSourceNode(this.parent.context, { buffer });
+		node.connect(this.#panner);
+		node.start();
+		return node;
 	}
 
 	// NOTE: The buffer is reused, so don't hold on to it.

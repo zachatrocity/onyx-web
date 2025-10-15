@@ -4,6 +4,7 @@ import * as Api from "../api";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
 import { Bounds, Vector } from "./geometry";
+import * as Meme from "./meme";
 
 //export type VideoSource = Watch.Video.Source | Publish.Video.Encoder;
 
@@ -30,11 +31,9 @@ export class Video {
 	frameOpacity: number = 0;
 	memeOpacity: number = 0;
 
-	// Signal that updates when meme video dimensions are loaded
-	#memeSize = new Signal<Vector | undefined>(undefined);
-
 	// Cached meme bounds (x_offset, y_offset, width_scale, height_scale)
-	memeBounds?: Bounds;
+	#memeSize = new Signal<Vector | undefined>(undefined);
+	memeBounds = new Signal<Bounds | undefined>(undefined);
 	memeActive: Signal<boolean> = new Signal<boolean>(false);
 
 	// Chroma key color for the current meme (RGB 0-1 range)
@@ -206,76 +205,112 @@ export class Video {
 		const meme = effect.get(this.broadcast.meme);
 		if (!meme) return;
 
+		// We don't use cleanup on these in order to fade out.
+		this.memeChroma = undefined;
+		this.#memeSize.set(undefined);
+
+		if ("element" in meme) {
+			this.#runMemeVideo(effect, meme);
+		} else {
+			this.#runMemeEmoji(effect, meme);
+		}
+	}
+
+	#runMemeVideo(effect: Effect, meme: Meme.Video) {
 		const element = meme.element;
 
 		// Monitor when the meme finishes playing, either by pausing (canceled) or ending.
 		// NOTE: iOS will pause on the second <video> tag.
 		// NOTE: The audio module calls play() only after connecting the the audio node.
 		const paused = new Signal(element.paused);
-		effect.event(element, "pause", () => paused.set(true));
 		effect.event(element, "play", () => paused.set(false));
+		effect.event(element, "pause", () => this.broadcast.meme.set(undefined)); // Signal done
+
+		effect.cleanup(() => this.memeActive.set(false));
+
+		const gl = this.#gl;
 
 		effect.effect((effect) => {
 			if (effect.get(paused)) return; // Gate everything on the pause state
 
-			effect.cleanup(() => this.memeActive.set(false));
+			const chromaHex = meme.chroma ?? "00FF00";
+			const chroma = {
+				r: parseInt(chromaHex.substring(0, 2), 16) / 255,
+				g: parseInt(chromaHex.substring(2, 4), 16) / 255,
+				b: parseInt(chromaHex.substring(4, 6), 16) / 255,
+			};
 
-			if (element instanceof HTMLVideoElement) {
-				const chromaHex = meme.source.chroma ?? "00FF00";
-				const chroma = {
-					r: parseInt(chromaHex.substring(0, 2), 16) / 255,
-					g: parseInt(chromaHex.substring(2, 4), 16) / 255,
-					b: parseInt(chromaHex.substring(4, 6), 16) / 255,
-				};
+			let first = true;
 
-				this.#memeToTexture(effect, element, this.memeTexture, chroma);
+			let cancel: number;
+			const onFrame = () => {
+				if (first) {
+					first = false;
 
-				// Listen for loadedmetadata event to update meme size when dimensions are available
-				const updateSize = () => {
-					if (element.videoWidth > 0 && element.videoHeight > 0) {
-						effect.set(this.#memeSize, Vector.create(element.videoWidth, element.videoHeight));
+					// Check if the video has an alpha channel
+					// This only fails on Safari currently; no support for VP9+alpha
+					const frame = new VideoFrame(element);
+					if (frame.format?.endsWith("A")) {
+						this.memeChroma = undefined;
+					} else {
+						this.memeChroma = chroma;
 					}
-				};
-
-				// Check if already loaded
-				if (element.readyState >= 1) {
-					updateSize();
+					frame.close();
 				}
 
-				// Listen for metadata load
-				effect.event(element, "loadedmetadata", updateSize);
-			} else if (meme.source.emoji) {
-				const emoji = meme.source.emoji;
+				// Don't render the frame until we start playing
+				if (element.currentTime > 0 && element.readyState > HTMLMediaElement.HAVE_CURRENT_DATA) {
+					this.memeActive.set(true);
 
-				effect.effect((effect) => {
-					// Audio meme - render emoji to texture
-					const size = effect.get(this.#renderSize);
-					this.#emojiToTexture(emoji, size);
-				});
+					gl.bindTexture(gl.TEXTURE_2D, this.memeTexture);
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, element);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+					gl.bindTexture(gl.TEXTURE_2D, null);
+				}
 
-				this.memeActive.set(true);
+				if (!element.paused && !element.ended) {
+					cancel = element.requestVideoFrameCallback(onFrame);
+				}
+			};
+
+			cancel = element.requestVideoFrameCallback(onFrame);
+
+			effect.cleanup(() => {
+				element.cancelVideoFrameCallback(cancel);
+			});
+
+			// Listen for loadedmetadata event to update meme size when dimensions are available
+			const updateSize = () => {
+				if (element.videoWidth && element.videoHeight) {
+					this.#memeSize.set(Vector.create(element.videoWidth, element.videoHeight));
+				}
+			};
+
+			// Check if already loaded
+			if (element.readyState >= 1) {
+				updateSize();
 			}
-		});
-	}
 
-	#runMemeTransition(effect: Effect) {
-		effect.get(this.memeActive);
-		this.#memeTransition = performance.now();
+			// Listen for metadata load
+			effect.event(element, "loadedmetadata", updateSize);
+		});
 	}
 
 	#runMemeBounds(effect: Effect) {
 		const meme = effect.get(this.broadcast.meme);
 		if (!meme) return;
 
-		// Wait until meme dimensions are available
 		const memeSize = effect.get(this.#memeSize);
 		if (!memeSize) return;
 
 		// Also react to bounds changes
 		const bounds = effect.get(this.broadcast.bounds);
 
-		const fit = meme.source.fit || "cover";
-		const position = meme.source.position || "center";
+		const fit = "fit" in meme ? meme.fit : "contain";
+		const position = "position" in meme ? meme.position : "center";
 
 		// Calculate meme bounds based on fit and position
 		const aspectRatio = memeSize.x / memeSize.y;
@@ -292,7 +327,7 @@ export class Video {
 				height = 1.0;
 				width = aspectRatio / boundsAspectRatio;
 			}
-		} else {
+		} else if (fit === "cover") {
 			// cover: fill the bounds (may crop)
 			if (aspectRatio > boundsAspectRatio) {
 				height = 1.0;
@@ -301,6 +336,8 @@ export class Video {
 				width = 1.0;
 				height = boundsAspectRatio / aspectRatio;
 			}
+		} else {
+			throw new Error(`Unsupported fit: ${fit}`);
 		}
 
 		// Parse position string
@@ -328,14 +365,53 @@ export class Video {
 		}
 
 		// Calculate offset in texture coordinates (0-1 range)
-		this.memeBounds = new Bounds(
-			Vector.create((1.0 - width) * xPos, (1.0 - height) * yPos),
-			Vector.create(width, height),
+		effect.set(
+			this.memeBounds,
+			new Bounds(Vector.create((1.0 - width) * xPos, (1.0 - height) * yPos), Vector.create(width, height)),
 		);
+	}
 
-		effect.cleanup(() => {
-			this.memeBounds = undefined;
+	#runMemeEmoji(effect: Effect, meme: Meme.Audio) {
+		const emoji = meme.emoji;
+
+		effect.effect((effect) => {
+			// Audio meme - render emoji to texture
+			const size = effect.get(this.#renderSize);
+			const gl = this.#gl;
+
+			// Create offscreen canvas
+			const canvas = document.createElement("canvas");
+			canvas.width = size;
+			canvas.height = size;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) throw new Error("Failed to get context");
+
+			// Render emoji centered
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.font = `${size * 0.5}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+			// Shift down slightly to compensate for emoji baseline issues
+			ctx.fillText(emoji, size / 2, size * 0.56);
+
+			// Upload to texture
+			gl.bindTexture(gl.TEXTURE_2D, this.memeTexture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+
+			this.#memeSize.set(Vector.create(size, size));
 		});
+
+		this.memeActive.set(true);
+		effect.cleanup(() => this.memeActive.set(false));
+	}
+
+	#runMemeTransition(effect: Effect) {
+		effect.get(this.memeActive);
+		this.#memeTransition = performance.now();
 	}
 
 	#frameToTexture(src: VideoFrame, dst: WebGLTexture) {
@@ -347,89 +423,6 @@ export class Video {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 		gl.bindTexture(gl.TEXTURE_2D, null);
-	}
-
-	#memeToTexture(
-		effect: Effect,
-		src: HTMLVideoElement,
-		dst: WebGLTexture,
-		chroma: { r: number; g: number; b: number },
-	) {
-		const gl = this.#gl;
-
-		let first = true;
-
-		let cancel: number;
-		const onFrame = () => {
-			if (first) {
-				first = false;
-
-				// Check if the video has an alpha channel
-				// This only fails on Safari currently; no support for VP9+alpha
-				const frame = new VideoFrame(src);
-				if (frame.format?.endsWith("A")) {
-					this.memeChroma = undefined;
-				} else {
-					this.memeChroma = chroma;
-				}
-				frame.close();
-			}
-
-			// Don't render the frame until we start playing
-			if (src.currentTime > 0 && src.readyState > HTMLMediaElement.HAVE_CURRENT_DATA) {
-				this.memeActive.set(true);
-
-				gl.bindTexture(gl.TEXTURE_2D, dst);
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.bindTexture(gl.TEXTURE_2D, null);
-			}
-
-			if (!src.paused && !src.ended) {
-				cancel = src.requestVideoFrameCallback(onFrame);
-			}
-		};
-
-		cancel = src.requestVideoFrameCallback(onFrame);
-
-		effect.cleanup(() => {
-			src.cancelVideoFrameCallback(cancel);
-			this.memeChroma = undefined;
-			this.memeActive.set(false);
-		});
-	}
-
-	#emojiToTexture(emoji: string, size: number) {
-		const gl = this.#gl;
-
-		// Create offscreen canvas
-		const canvas = document.createElement("canvas");
-		canvas.width = size;
-		canvas.height = size;
-		const ctx = canvas.getContext("2d");
-		if (!ctx) throw new Error("Failed to get context");
-
-		// Render emoji centered
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.font = `${size * 0.5}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-		// Shift down slightly to compensate for emoji baseline issues
-		ctx.fillText(emoji, size / 2, size * 0.56);
-
-		// Upload to texture
-		gl.bindTexture(gl.TEXTURE_2D, this.memeTexture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-
-		// Set meme size for bounds calculation
-		this.#memeSize.set(Vector.create(size, size));
 	}
 
 	#runRenderSize(effect: Effect) {
