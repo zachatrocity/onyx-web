@@ -1,0 +1,38 @@
+[Unit]
+Description=MoQ Relay Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/lib/moq-relay
+Environment="NODE_NAME=__NODE_NAME__"
+Environment="CLUSTER_ROOT=__CLUSTER_ROOT__"
+ExecStart=__MOQRELAY_BIN__ \
+  --listen [::]:443 \
+  --tls-cert /var/lib/moq-relay/certs/public.crt \
+  --tls-key /var/lib/moq-relay/certs/public.key \
+  --tls-cert /var/lib/moq-relay/certs/internal.crt \
+  --tls-key /var/lib/moq-relay/certs/internal.key \
+  --auth /var/lib/moq-relay/root.jwk \
+  --auth-public anon \
+  --cluster __CLUSTER_MODE__ \
+  --cluster-node __NODE_URL__ \
+  --cluster-token /var/lib/moq-relay/cluster.jwt
+
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/moq-relay
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

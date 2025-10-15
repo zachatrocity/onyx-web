@@ -1,0 +1,48 @@
+# DNS zone for relay servers
+resource "google_dns_managed_zone" "relay" {
+  name     = "relay"
+  dns_name = "${var.relay_subdomain}.${var.domain}."
+}
+
+# Individual DNS records for each relay node (for direct access)
+resource "google_dns_record_set" "relay_node" {
+  for_each = local.relays
+
+  name         = "${each.key}.${google_dns_managed_zone.relay.dns_name}"
+  managed_zone = google_dns_managed_zone.relay.name
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [linode_instance.relay[each.key].ip_address]
+}
+
+# Global Geo DNS, routing to the closest region
+resource "google_dns_record_set" "relay_global" {
+  name         = google_dns_managed_zone.relay.dns_name
+  managed_zone = google_dns_managed_zone.relay.name
+  type         = "A"
+  ttl          = 60
+
+  routing_policy {
+    dynamic "geo" {
+      for_each = local.relay_gcp_regions
+
+      content {
+        location = geo.value
+        rrdatas = [
+          linode_instance.relay[geo.key].ip_address
+        ]
+      }
+    }
+  }
+}
+
+# Region mapping for GCP geo routing
+# GCP uses region codes like "us-east1", "us-west1", "europe-west3", "asia-southeast1"
+locals {
+  relay_gcp_regions = {
+    use = "us-east1"        # Newark, NJ -> closest GCP region
+    usw = "us-west1"        # Fremont, CA -> closest GCP region
+    euc = "europe-west3"    # Frankfurt -> closest GCP region
+    sg  = "asia-southeast1" # Singapore -> closest GCP region
+  }
+}
