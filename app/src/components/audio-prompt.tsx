@@ -4,7 +4,7 @@ import type { JSX } from "solid-js/jsx-runtime";
 export default function AudioPrompt(props: { show: boolean; onClick: () => void }): JSX.Element {
 	return (
 		<Show when={props.show}>
-			<div class="absolute bottom-0 left-0 right-0 flex items-center justify-center z-10 m-4">
+			<div class="absolute bottom-0 left-0 right-0 flex items-center justify-center z-200 m-4">
 				<button
 					type="button"
 					onClick={props.onClick}

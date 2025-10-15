@@ -3,7 +3,7 @@ import { Effect, Signal } from "@kixelated/signals";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
 import * as Meme from "./meme";
-import { PannedNotifications as PannedSound, Sound } from "./sound";
+import { PannedSound, Sound } from "./sound";
 
 const FADE_TIME = 0.2;
 const GAIN_MIN = 0.001;
@@ -106,7 +106,7 @@ export class Audio {
 	#runMemeVideo(effect: Effect, meme: Meme.Video) {
 		effect.effect((effect) => {
 			// Toggle the muted state
-			meme.element.muted = !effect.get(this.sound.parent.enabled);
+			meme.element.muted = effect.get(this.sound.parent.suspended);
 		});
 
 		const source = this.sound.media(meme.element);

@@ -27,12 +27,15 @@ export type SoundProps = {
 	tts?: TTSProps;
 };
 
+const RESUME_EVENTS = ["click", "touchstart", "touchend", "mousedown", "keydown"];
+
 export class Sound {
 	enabled: Signal<boolean>;
 	tts: TTS;
 
 	context: AudioContext;
 	gain: GainNode;
+	suspended: Signal<boolean>;
 
 	#notifications: Map<NotificationSound, Promise<AudioBuffer[]>>;
 	#signals = new Effect();
@@ -41,6 +44,20 @@ export class Sound {
 		this.context = new AudioContext({
 			latencyHint: "playback",
 		});
+		this.suspended = new Signal(this.context.state === "suspended");
+
+		// Try to initialize the audio context if it's suspended.
+		if (this.suspended.peek()) {
+			// Listen for any events that might let us unmute the audio context.
+			for (const event of RESUME_EVENTS) {
+				document.addEventListener(
+					event,
+					() => this.context.resume().then(() => this.suspended.set(this.context.state === "suspended")),
+					{ once: true },
+				);
+			}
+		}
+
 		this.enabled = Signal.from(props?.enabled ?? false);
 		this.tts = new TTS(this.context, props?.tts);
 
@@ -69,7 +86,7 @@ export class Sound {
 
 	#runGain(effect: Effect) {
 		// Reduce the volume for notifications so we can hear them over everything else.
-		const volume = effect.get(Settings.audio.enabled) ? effect.get(Settings.audio.volume) / 2 : 0;
+		const volume = effect.get(this.enabled) ? effect.get(Settings.audio.volume) / 2 : 0;
 
 		// Cancel any scheduled transitions on change.
 		effect.cleanup(() => this.gain.gain.cancelScheduledValues(this.gain.context.currentTime));
@@ -91,23 +108,23 @@ export class Sound {
 	}
 
 	async notification(sound: NotificationSound) {
-		if (this.enabled.peek()) return;
+		if (this.suspended.peek()) return;
 
 		const source = await this.notificationNode(sound);
 		source.connect(this.context.destination);
 		source.start();
 	}
 
+	media(element: HTMLAudioElement | HTMLVideoElement): MediaElementAudioSourceNode {
+		const source = new MediaElementAudioSourceNode(this.context, { mediaElement: element });
+		source.connect(this.gain);
+		return source;
+	}
+
 	async load(url: string): Promise<AudioBuffer> {
 		const response = await fetch(url);
 		const data = await response.arrayBuffer();
 		return await this.context.decodeAudioData(data);
-	}
-
-	// Called on click to reinitialize the audio context.
-	resume() {
-		// Start the audio context if it's suspended.
-		this.context.resume();
 	}
 
 	close() {
@@ -118,7 +135,7 @@ export class Sound {
 	}
 }
 
-export class PannedNotifications {
+export class PannedSound {
 	parent: Sound;
 	#panner: StereoPannerNode;
 
@@ -152,6 +169,8 @@ export class PannedNotifications {
 	}
 
 	async notification(sound: NotificationSound) {
+		if (this.parent.suspended.peek()) return;
+
 		const source = await this.parent.notificationNode(sound);
 		source.connect(this.#panner);
 

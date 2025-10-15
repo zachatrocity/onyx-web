@@ -19,9 +19,12 @@ import "@kixelated/hang/support/element";
 import { Sound } from "./room/sound";
 import Settings from "./settings";
 
-export function Sup(props: { canvas: Canvas; room: string; sound: Sound }): JSX.Element {
+export function Sup(props: { canvas: Canvas; room: string }): JSX.Element {
 	const connection = new Moq.Connection.Reload({ enabled: true });
 	onCleanup(() => connection.close());
+
+	const sound = new Sound({ enabled: Settings.audio.enabled });
+	onCleanup(() => sound.close());
 
 	// Create the local broadcasts (camera and screen)
 	const local = new Local({ connection: connection.established });
@@ -58,7 +61,7 @@ export function Sup(props: { canvas: Canvas; room: string; sound: Sound }): JSX.
 
 	return (
 		<Show when={publish()} fallback={<Preview room={props.room} local={local} connection={connection} />}>
-			<App connection={connection} canvas={props.canvas} room={props.room} sound={props.sound} local={local} />
+			<App connection={connection} canvas={props.canvas} room={props.room} sound={sound} local={local} />
 		</Show>
 	);
 }
@@ -78,9 +81,6 @@ function App(props: {
 		connection: props.connection,
 	});
 	onCleanup(() => room.close());
-
-	// Try to start the sound immediately on click.
-	props.sound.resume();
 
 	// Update badge count based on room participants
 	const participantCount = solid(room.space.ordered);

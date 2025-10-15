@@ -63,6 +63,8 @@ export class FakeBroadcast {
 
 	signals = new Effect();
 
+	#video?: HTMLVideoElement;
+
 	constructor(sound: Sound, props?: FakeBroadcastProps) {
 		this.sound = sound;
 
@@ -100,11 +102,10 @@ export class FakeBroadcast {
 		const video = document.createElement("video");
 		video.crossOrigin = "anonymous";
 		video.src = src.toString();
-		video.muted = true;
+		video.muted = this.sound.enabled.peek();
 		video.playsInline = true;
 		video.autoplay = true;
-		video.load();
-		video.play();
+		//video.load();
 
 		const onFrame = () => {
 			this.video.frame.update((prev) => {
@@ -130,10 +131,31 @@ export class FakeBroadcast {
 			]);
 		};
 
-		video.onended = () => this.stop();
+		// TODO Ideally we visualize the audio even when muted, but not suspended.
+		// But I can't figure out why it works for memes but not here.
+		this.sound.enabled.watch((enabled) => {
+			video.muted = !enabled;
+		});
 
-		const source = new MediaElementAudioSourceNode(this.sound.context, { mediaElement: video });
-		this.audio.root.set(source);
+		const node = this.sound.media(video);
+		this.audio.root.set(node);
+
+		// Called after the media element is connected to the audio context.
+		video.play();
+
+		video.onpause = () => {
+			this.video.frame.update((prev) => {
+				prev?.close();
+				return undefined;
+			});
+
+			this.audio.root.update((prev) => {
+				prev?.disconnect();
+				return undefined;
+			});
+
+			this.video.catalog.set(undefined);
+		};
 	}
 
 	// "plays" an image file.
@@ -160,17 +182,8 @@ export class FakeBroadcast {
 	}
 
 	stop() {
-		this.video.frame.update((prev) => {
-			prev?.close();
-			return undefined;
-		});
-
-		this.audio.root.update((prev) => {
-			prev?.disconnect();
-			return undefined;
-		});
-
-		this.video.catalog.set(undefined);
+		this.#video?.pause();
+		this.#video = undefined;
 	}
 
 	close() {
@@ -183,7 +196,7 @@ export class FakeRoom {
 	sound: Sound;
 
 	constructor(canvas: Canvas) {
-		this.sound = new Sound({ tts: { enabled: true } });
+		this.sound = new Sound(); // muted by default
 		this.space = new Space(canvas, this.sound);
 	}
 

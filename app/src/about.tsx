@@ -14,8 +14,9 @@ export function About(): JSX.Element {
 	onCleanup(() => room.close());
 
 	const audioEnabled = solid(room.sound.enabled);
-	const handleEnableAudio = () => {
+	const enableAudio = () => {
 		room.sound.enabled.set(true);
+		room.sound.tts.enabled.set(true);
 	};
 
 	const services = ["Meet", "Zoom", "Teams", "Discord", "Skype", "WebEx", "FaceTime", "WhatsApp"];
@@ -226,7 +227,7 @@ export function About(): JSX.Element {
 		const interval = setInterval(() => {
 			const action = timeline.shift();
 			if (action) action();
-		}, 1500);
+		}, 500);
 
 		onCleanup(() => clearInterval(interval));
 	});
@@ -261,7 +262,7 @@ export function About(): JSX.Element {
 
 				<div class="sm:m-8 m-4 h-128 w-full relative">
 					<DemoHeader />
-					<AudioPrompt show={!audioEnabled()} onClick={handleEnableAudio} />
+					<AudioPrompt show={!audioEnabled()} onClick={enableAudio} />
 					{canvas}
 				</div>
 
