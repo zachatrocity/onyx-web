@@ -63,8 +63,6 @@ export class FakeBroadcast {
 
 	signals = new Effect();
 
-	#video?: HTMLVideoElement;
-
 	constructor(sound: Sound, props?: FakeBroadcastProps) {
 		this.sound = sound;
 
@@ -181,9 +179,13 @@ export class FakeBroadcast {
 		};
 	}
 
-	stop() {
-		this.#video?.pause();
-		this.#video = undefined;
+	unshow() {
+		this.video.frame.update((prev) => {
+			prev?.close();
+			return undefined;
+		});
+
+		this.video.catalog.set(undefined);
 	}
 
 	close() {
