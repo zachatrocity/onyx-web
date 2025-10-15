@@ -204,52 +204,58 @@ export class Video {
 
 	#runMeme(effect: Effect) {
 		const meme = effect.get(this.broadcast.meme);
-		if (!meme) {
-			this.memeActive.set(false);
-			return;
-		}
+		if (!meme) return;
 
 		const element = meme.element;
 
-		effect.event(element, "pause", () => {
-			this.memeActive.set(false);
-		});
+		// Monitor when the meme finishes playing, either by pausing (canceled) or ending.
+		// NOTE: iOS will pause on the second <video> tag.
+		// NOTE: The audio module calls play() only after connecting the the audio node.
+		const paused = new Signal(element.paused);
+		effect.event(element, "pause", () => paused.set(true));
+		effect.event(element, "play", () => paused.set(false));
 
-		if (element instanceof HTMLVideoElement) {
-			const chromaHex = meme.source.chroma ?? "00FF00";
-			const chroma = {
-				r: parseInt(chromaHex.substring(0, 2), 16) / 255,
-				g: parseInt(chromaHex.substring(2, 4), 16) / 255,
-				b: parseInt(chromaHex.substring(4, 6), 16) / 255,
-			};
+		effect.effect((effect) => {
+			if (effect.get(paused)) return; // Gate everything on the pause state
 
-			this.#memeToTexture(effect, element, this.memeTexture, chroma);
+			effect.cleanup(() => this.memeActive.set(false));
 
-			// Listen for loadedmetadata event to update meme size when dimensions are available
-			const updateSize = () => {
-				if (element.videoWidth > 0 && element.videoHeight > 0) {
-					effect.set(this.#memeSize, Vector.create(element.videoWidth, element.videoHeight));
+			if (element instanceof HTMLVideoElement) {
+				const chromaHex = meme.source.chroma ?? "00FF00";
+				const chroma = {
+					r: parseInt(chromaHex.substring(0, 2), 16) / 255,
+					g: parseInt(chromaHex.substring(2, 4), 16) / 255,
+					b: parseInt(chromaHex.substring(4, 6), 16) / 255,
+				};
+
+				this.#memeToTexture(effect, element, this.memeTexture, chroma);
+
+				// Listen for loadedmetadata event to update meme size when dimensions are available
+				const updateSize = () => {
+					if (element.videoWidth > 0 && element.videoHeight > 0) {
+						effect.set(this.#memeSize, Vector.create(element.videoWidth, element.videoHeight));
+					}
+				};
+
+				// Check if already loaded
+				if (element.readyState >= 1) {
+					updateSize();
 				}
-			};
 
-			// Check if already loaded
-			if (element.readyState >= 1) {
-				updateSize();
+				// Listen for metadata load
+				effect.event(element, "loadedmetadata", updateSize);
+			} else if (meme.source.emoji) {
+				const emoji = meme.source.emoji;
+
+				effect.effect((effect) => {
+					// Audio meme - render emoji to texture
+					const size = effect.get(this.#renderSize);
+					this.#emojiToTexture(emoji, size);
+				});
+
+				this.memeActive.set(true);
 			}
-
-			// Listen for metadata load
-			effect.event(element, "loadedmetadata", updateSize);
-		} else if (meme.source.emoji) {
-			const emoji = meme.source.emoji;
-
-			effect.effect((effect) => {
-				// Audio meme - render emoji to texture
-				const size = effect.get(this.#renderSize);
-				this.#emojiToTexture(emoji, size);
-			});
-
-			this.memeActive.set(true);
-		}
+		});
 	}
 
 	#runMemeTransition(effect: Effect) {

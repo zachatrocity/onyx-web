@@ -43,12 +43,29 @@ export class Audio {
 		this.#signals.effect((effect) => {
 			const meme = effect.get(this.broadcast.meme);
 			if (!meme) return;
+		});
 
-			const source = new MediaElementAudioSourceNode(this.sound.context, { mediaElement: meme.element });
+		this.#signals.effect((effect) => {
+			const meme = effect.get(this.broadcast.meme);
+			if (!meme) return;
 
-			// Use the existing notifications context so we don't need to create our own panner/volume.
-			this.sound.connect(source);
+			effect.effect((effect) => {
+				// Toggle the muted state
+				meme.element.muted = !effect.get(this.sound.parent.enabled);
+			});
+
+			const source = this.sound.media(meme.element);
 			effect.cleanup(() => source.disconnect());
+
+			// Start playing once connected.
+			meme.element.play().catch((err) => {
+				console.error("Meme audio failed to play:", err);
+			});
+
+			// Only start playing after we've connected the audio.
+			effect.cleanup(() => {
+				meme.element.pause();
+			});
 		});
 
 		this.#signals.effect((effect) => {

@@ -80,7 +80,7 @@ function App(props: {
 	onCleanup(() => room.close());
 
 	// Try to start the sound immediately on click.
-	props.sound.click();
+	props.sound.resume();
 
 	// Update badge count based on room participants
 	const participantCount = solid(room.space.ordered);

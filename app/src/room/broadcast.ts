@@ -178,16 +178,12 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 
 			const meme = Meme.load(memeName);
 			if (meme) {
-				effect.effect((effect) => {
-					meme.element.muted = !effect.get(this.audio.sound.parent.enabled);
-				});
-				// NOTE: We purposely don't cancel/pause the meme unless a second meme is selected.
-				//effect.cleanup(() => meme.element.pause());
-
+				// NOTE: We only do this on a new meme so the previous one keeps playing during chat.
 				this.meme.update((prev) => {
 					prev?.element.pause();
 					return meme;
 				});
+
 				return;
 			}
 		}

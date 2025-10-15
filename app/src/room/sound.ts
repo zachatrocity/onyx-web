@@ -33,7 +33,6 @@ export class Sound {
 
 	context: AudioContext;
 	gain: GainNode;
-	suspended: Signal<boolean>;
 
 	#sounds: Map<NotificationSound, Promise<AudioBuffer[]>>;
 	#signals = new Effect();
@@ -48,8 +47,6 @@ export class Sound {
 		this.gain = new GainNode(this.context);
 		this.gain.connect(this.context.destination);
 
-		this.suspended = new Signal(this.context.state === "suspended");
-
 		const sounds = new Map();
 
 		for (const [sound, url] of Object.entries(NOTIFICATIONS)) {
@@ -63,17 +60,6 @@ export class Sound {
 			);
 			sounds.set(sound, load);
 		}
-
-		this.#signals.effect((effect) => {
-			const enabled = effect.get(this.enabled);
-
-			if (enabled) {
-				this.context.resume();
-				this.suspended.set(this.context.state === "suspended");
-			} else if (!enabled) {
-				this.context.suspend();
-			}
-		});
 
 		this.#sounds = sounds;
 
@@ -96,27 +82,25 @@ export class Sound {
 	}
 
 	// Return a buffer for the sound, randomly selecting one if there are multiple.
-	async load(sound: NotificationSound): Promise<AudioBuffer> {
+	async notificationSource(sound: NotificationSound): Promise<AudioBufferSourceNode> {
 		const buffers = await this.#sounds.get(sound);
 		if (!buffers) throw new Error(`Sound "${String(sound)}" not loaded`);
-		return buffers[Math.floor(Math.random() * buffers.length)];
+		const buffer = buffers[Math.floor(Math.random() * buffers.length)];
+		return new AudioBufferSourceNode(this.context, { buffer });
 	}
 
-	async play(sound: NotificationSound) {
-		if (!this.enabled.peek()) return;
+	async notification(sound: NotificationSound) {
+		if (this.enabled.peek()) return;
 
-		const buffer = await this.load(sound);
-		const source = new AudioBufferSourceNode(this.context, { buffer });
+		const source = await this.notificationSource(sound);
 		source.connect(this.context.destination);
 		source.start();
 	}
 
 	// Called on click to reinitialize the audio context.
-	click() {
-		// Force the effects to run again.
-		if (this.suspended.peek()) {
-			this.enabled.update((prev) => prev);
-		}
+	resume() {
+		// Start the audio context if it's suspended.
+		this.context.resume();
 	}
 
 	close() {
@@ -161,11 +145,7 @@ export class PannedNotifications {
 	}
 
 	async notification(sound: NotificationSound) {
-		if (!this.parent.enabled.peek()) return;
-
-		const buffer = await this.parent.load(sound);
-
-		const source = new AudioBufferSourceNode(this.parent.context, { buffer });
+		const source = await this.parent.notificationSource(sound);
 		source.connect(this.#panner);
 
 		// TODO: For some reason, sounds don't play correctly on startup.
@@ -174,12 +154,10 @@ export class PannedNotifications {
 		source.start(when);
 	}
 
-	get context() {
-		return this.parent.context;
-	}
-
-	connect(node: AudioNode) {
-		node.connect(this.#panner);
+	media(element: HTMLAudioElement | HTMLVideoElement): MediaElementAudioSourceNode {
+		const source = new MediaElementAudioSourceNode(this.parent.context, { mediaElement: element });
+		source.connect(this.#panner);
+		return source;
 	}
 
 	// NOTE: The buffer is reused, so don't hold on to it.

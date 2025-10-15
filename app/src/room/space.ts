@@ -83,7 +83,7 @@ export class Space {
 	}
 
 	#onMouseDown(e: MouseEvent) {
-		this.sound.click();
+		this.sound.resume();
 
 		const mouse = this.canvas.relative(e.clientX, e.clientY);
 		const viewport = this.canvas.viewport.peek();
@@ -250,7 +250,7 @@ export class Space {
 	}
 
 	#onTouchStart(e: TouchEvent) {
-		this.sound.click();
+		this.sound.resume();
 
 		// Store all active touches
 		this.#touches.clear();

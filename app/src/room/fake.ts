@@ -100,17 +100,9 @@ export class FakeBroadcast {
 		const video = document.createElement("video");
 		video.crossOrigin = "anonymous";
 		video.src = src.toString();
-
-		if (!this.sound.enabled.peek()) {
-			video.muted = true;
-			this.signals.effect((effect) => {
-				video.muted = !effect.get(this.sound.enabled);
-			});
-		}
-
+		video.muted = true;
 		video.playsInline = true;
 		video.autoplay = true;
-		video.volume = 0.25;
 		video.load();
 		video.play();
 

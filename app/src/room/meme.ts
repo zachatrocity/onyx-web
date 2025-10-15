@@ -1288,10 +1288,7 @@ export function audio(name: string): Audio | undefined {
 
 	const audio = document.createElement("audio") as HTMLAudioElement;
 	audio.src = new URL(`/meme/${audioSource.source}`, import.meta.env.VITE_APP_URL).toString();
-	audio.autoplay = true;
-	audio.muted = true;
-	audio.load();
-	audio.play();
+	audio.style.display = "none";
 
 	return { element: audio, source: audioSource };
 }
@@ -1324,13 +1321,10 @@ export function video(name: string): Video | undefined {
 
 	video.crossOrigin = "anonymous";
 	video.src = new URL(`/meme/${source}`, import.meta.env.VITE_APP_URL).toString();
-	video.muted = true;
-	video.autoplay = true;
+	video.muted = true; // Otherwise autoplay might not work
 	video.playsInline = true;
 	video.style.objectFit = videoSource.fit || "contain";
 	video.style.objectPosition = videoSource.position || "center";
-	video.load();
-	video.play();
 
 	return { element: video, source: videoSource };
 }

@@ -89,13 +89,13 @@ export class Room {
 		// Play a sound when the camera or screen is selected
 		this.local.camera.signals.effect((effect) => {
 			if (effect.get(this.local.camera.video.source) || effect.get(this.local.camera.audio.source)) {
-				this.space.sound.play("select");
+				this.space.sound.notification("select");
 			}
 		});
 
 		this.local.share.signals.effect((effect) => {
 			if (effect.get(this.local.share.video.source) || effect.get(this.local.share.audio.source)) {
-				this.space.sound.play("select");
+				this.space.sound.notification("select");
 			}
 		});
 	}
