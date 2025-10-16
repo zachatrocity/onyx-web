@@ -127,7 +127,9 @@ export class Audio {
 		effect.cleanup(() => node.disconnect());
 
 		effect.event(node, "ended", () => {
-			this.broadcast.meme.set(undefined);
+			if (this.broadcast.meme.peek() === meme) {
+				this.broadcast.meme.set(undefined); // Signal done
+			}
 		});
 	}
 

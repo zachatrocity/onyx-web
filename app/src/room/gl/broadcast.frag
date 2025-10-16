@@ -16,7 +16,6 @@ uniform float u_frameOpacity; // Pre-computed frame opacity (0-1)
 uniform float u_memeOpacity; // Pre-computed meme opacity (0-1)
 uniform vec4 u_memeBounds; // x, y, width, height in texture coordinates
 uniform bool u_memeChromaKey; // Whether the chroma key is enabled
-uniform vec3 u_memeChromaColor; // Chroma key color for greenscreen removal (RGB 0-1)
 
 out vec4 fragColor;
 
@@ -60,7 +59,7 @@ void main() {
 			float memeAlpha;
 			if (u_memeChromaKey) {
 				// Fall back to chroma key for greenscreen removal
-				memeAlpha = chromaKey(memeColor.rgb, u_memeChromaColor) * u_memeOpacity;
+				memeAlpha = chromaKey(memeColor.rgb) * u_memeOpacity;
 			} else {
 				// Use native alpha channel (VP9+alpha support)
 				memeAlpha = memeColor.a * u_memeOpacity;

@@ -35,9 +35,7 @@ export class Video {
 	#memeSize = new Signal<Vector | undefined>(undefined);
 	memeBounds = new Signal<Bounds | undefined>(undefined);
 	memeActive: Signal<boolean> = new Signal<boolean>(false);
-
-	// Chroma key color for the current meme (RGB 0-1 range)
-	memeChroma?: { r: number; g: number; b: number };
+	memeChroma = false; // whether to use chroma key for greenscreen removal
 
 	// WebGL textures for this broadcast
 	frameTexture: WebGLTexture; // Video texture
@@ -205,10 +203,6 @@ export class Video {
 		const meme = effect.get(this.broadcast.meme);
 		if (!meme) return;
 
-		// We don't use cleanup on these in order to fade out.
-		this.memeChroma = undefined;
-		this.#memeSize.set(undefined);
-
 		if ("element" in meme) {
 			this.#runMemeVideo(effect, meme);
 		} else {
@@ -224,7 +218,11 @@ export class Video {
 		// NOTE: The audio module calls play() only after connecting the the audio node.
 		const paused = new Signal(element.paused);
 		effect.event(element, "play", () => paused.set(false));
-		effect.event(element, "pause", () => this.broadcast.meme.set(undefined)); // Signal done
+		effect.event(element, "pause", () => {
+			if (this.broadcast.meme.peek() === meme) {
+				this.broadcast.meme.set(undefined); // Signal done
+			}
+		});
 
 		effect.cleanup(() => this.memeActive.set(false));
 
@@ -232,13 +230,6 @@ export class Video {
 
 		effect.effect((effect) => {
 			if (effect.get(paused)) return; // Gate everything on the pause state
-
-			const chromaHex = meme.chroma ?? "00FF00";
-			const chroma = {
-				r: parseInt(chromaHex.substring(0, 2), 16) / 255,
-				g: parseInt(chromaHex.substring(2, 4), 16) / 255,
-				b: parseInt(chromaHex.substring(4, 6), 16) / 255,
-			};
 
 			let first = true;
 
@@ -251,9 +242,9 @@ export class Video {
 					// This only fails on Safari currently; no support for VP9+alpha
 					const frame = new VideoFrame(element);
 					if (frame.format?.endsWith("A")) {
-						this.memeChroma = undefined;
+						this.memeChroma = false;
 					} else {
-						this.memeChroma = chroma;
+						this.memeChroma = true;
 					}
 					frame.close();
 				}
@@ -373,6 +364,8 @@ export class Video {
 
 	#runMemeEmoji(effect: Effect, meme: Meme.Audio) {
 		const emoji = meme.emoji;
+
+		this.memeChroma = false;
 
 		effect.effect((effect) => {
 			// Audio meme - render emoji to texture

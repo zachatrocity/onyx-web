@@ -19,10 +19,6 @@ export type VideoSource = {
 	// CSS object-position: where the video is positioned within its container
 	// Examples: "center", "bottom", "top left", "50% 75%"
 	position: "center" | "bottom" | "top left" | "top right" | "bottom left" | "bottom right" | "right";
-
-	// Chroma key color for greenscreen removal (hex color without #, e.g., "00FF00")
-	// Defaults to "00FF00" (pure green) if not specified
-	chroma?: string;
 };
 
 export type AudioSource = {
@@ -187,7 +183,6 @@ export const VIDEO = {
 		thumbnail: "huh.png",
 		fit: "cover",
 		position: "center",
-		chroma: "00b733",
 	},
 	kek: {
 		paths: [

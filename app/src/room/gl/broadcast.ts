@@ -26,7 +26,6 @@ export class BroadcastRenderer {
 	#u_memeOpacity: Uniform1f;
 	#u_memeBounds: Uniform4f;
 	#u_memeChromaKey: Uniform1i;
-	#u_memeChromaColor: Uniform3f;
 	#u_flip: Uniform1i;
 	#u_dragPoint: Uniform2f;
 	#u_velocity: Uniform2f;
@@ -57,7 +56,6 @@ export class BroadcastRenderer {
 		this.#u_memeOpacity = this.#program.createUniform1f("u_memeOpacity");
 		this.#u_memeBounds = this.#program.createUniform4f("u_memeBounds");
 		this.#u_memeChromaKey = this.#program.createUniform1i("u_memeChromaKey");
-		this.#u_memeChromaColor = this.#program.createUniform3f("u_memeChromaColor");
 		this.#u_flip = this.#program.createUniform1i("u_flip");
 		this.#u_dragPoint = this.#program.createUniform2f("u_dragPoint");
 		this.#u_velocity = this.#program.createUniform2f("u_velocity");
@@ -183,14 +181,8 @@ export class BroadcastRenderer {
 			this.#u_memeBounds.set(memeBounds.position.x, memeBounds.position.y, memeBounds.size.x, memeBounds.size.y);
 		}
 
-		// Set chroma key color
-		const chroma = broadcast.video.memeChroma;
-		if (chroma) {
-			this.#u_memeChromaKey.set(chroma ? 1 : 0);
-			this.#u_memeChromaColor.set(chroma?.r, chroma?.g, chroma?.b);
-		} else {
-			this.#u_memeChromaKey.set(0);
-		}
+		// Set chroma key flag
+		this.#u_memeChromaKey.set(broadcast.video.memeChroma ? 1 : 0);
 
 		// Draw
 		gl.bindVertexArray(vao);
