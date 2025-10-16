@@ -164,17 +164,10 @@ export class Video {
 	}
 
 	#runTargetSize(effect: Effect) {
-		const catalog = effect.get(this.broadcast.source.video.catalog);
-
-		if (catalog) {
-			for (const rendition of catalog) {
-				if (rendition.config.displayAspectHeight && rendition.config.displayAspectWidth) {
-					this.targetSize.set(
-						Vector.create(rendition.config.displayAspectWidth, rendition.config.displayAspectHeight),
-					);
-					return;
-				}
-			}
+		const frame = effect.get(this.broadcast.source.video.frame);
+		if (frame) {
+			this.targetSize.set(Vector.create(frame.displayWidth, frame.displayHeight));
+			return;
 		}
 
 		const avatar = effect.get(this.avatarSize);
