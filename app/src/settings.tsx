@@ -1,7 +1,7 @@
 import * as Api from "@hang/api/client";
 import { Effect, Signal } from "@kixelated/signals";
 import solid from "@kixelated/signals/solid";
-import { createSelector, createSignal, Match, Switch } from "solid-js";
+import { createSelector, createSignal, Match, Show, Switch } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";
 import { z } from "zod";
 import { Tab } from "./components/meme-selector";
@@ -86,6 +86,11 @@ export const Settings = {
 				return window.devicePixelRatio;
 			})(),
 		),
+	},
+
+	// Debug settings
+	debug: {
+		video: new Signal(localStorage.getItem("settings.debug.video") === "true"),
 	},
 
 	clear: () => {
@@ -210,6 +215,10 @@ effect.subscribe(Settings.render.scale, (ratio) => {
 	localStorage.setItem("settings.render.scale", ratio.toString());
 });
 
+effect.subscribe(Settings.debug.video, (enabled) => {
+	localStorage.setItem("settings.debug.video", enabled.toString());
+});
+
 // Mostly just to avoid console warnings about signals not being closed
 document.addEventListener("unload", () => {
 	effect.close();
@@ -219,6 +228,7 @@ export default Settings;
 
 export function Modal(props: { sound: Sound }): JSX.Element {
 	const draggable = solid(Settings.draggable);
+	const videoDebug = solid(Settings.debug.video);
 	const tts = createSelector(solid(Settings.audio.tts));
 	const webGPUSupported = supportsWebGPU();
 	const devicePixelRatio = solid(Settings.render.scale);
@@ -407,6 +417,24 @@ export function Modal(props: { sound: Sound }): JSX.Element {
 					class="cursor-pointer accent-blue-500 group-hover:accent-blue-400 transition-colors w-18"
 				/>
 			</div>
+			<Show when={process.env.NODE_ENV === "development"}>
+				<div class="h-px bg-white/10" />
+				<div class="flex flex-wrap gap-4">
+					<div class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 flex-shrink-0 self-start">
+						<span class="icon-[mdi--bug] text-lg text-white/70" />
+					</div>
+					<div class="flex flex-col gap-0.5 flex-grow">
+						<span class="text-white/90 font-medium">Video Debug Info</span>
+						<span class="text-xs text-white/50">Show video frame dimensions overlay</span>
+					</div>
+					<input
+						type="checkbox"
+						checked={videoDebug()}
+						onChange={() => Settings.debug.video.update((p) => !p)}
+						class="cursor-pointer accent-blue-500 group-hover:accent-blue-400 transition-colors w-18"
+					/>
+				</div>
+			</Show>
 		</div>
 	);
 }

@@ -4,6 +4,7 @@ import { Audio } from "./audio";
 import { Canvas } from "./canvas";
 import { Captions } from "./captions";
 import { Chat } from "./chat";
+import { Debug } from "./debug";
 import { FakeBroadcast } from "./fake";
 import { Bounds, Vector } from "./geometry";
 import { MeshBuffer } from "./gl/mesh";
@@ -46,6 +47,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 	chat: Chat;
 	captions: Captions;
 	name: Name;
+	debug: Debug;
 
 	// The current chat message, if any.
 	message = new Signal<HTMLElement | undefined>(undefined);
@@ -119,6 +121,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		this.chat = new Chat(this, props.canvas);
 		this.captions = new Captions(this, props.canvas);
 		this.name = new Name(this, props.canvas);
+		this.debug = new Debug(this, props.canvas);
 
 		const viewport = this.canvas.viewport.peek();
 
@@ -346,6 +349,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		this.chat.close();
 		this.captions.close();
 		this.name.close();
+		this.debug.close();
 		this.mesh.close();
 
 		// NOTE: Don't close the source broadcast; we need it for the local preview.
