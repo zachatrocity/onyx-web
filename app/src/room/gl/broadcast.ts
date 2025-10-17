@@ -157,7 +157,7 @@ export class BroadcastRenderer {
 		this.#u_memeOpacity.set(broadcast.video.memeOpacity);
 
 		// Set flip flag
-		this.#u_flip.set(broadcast.video.flip.peek() ? 1 : 0);
+		this.#u_flip.set(broadcast.source.video.flip.peek() ? 1 : 0);
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, broadcast.video.frameTexture);

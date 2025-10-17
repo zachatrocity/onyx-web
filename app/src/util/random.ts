@@ -194,7 +194,6 @@ const NOUNS = [
 	"containment",
 	"cell",
 	"ward",
-	"cave",
 	"tree",
 	"garage",
 	"yard",
@@ -246,7 +245,6 @@ const NOUNS = [
 	"station",
 	"platform",
 	"terminal",
-	"hangar",
 	"dock",
 	"volcano",
 	"mountain",
@@ -271,7 +269,6 @@ const NOUNS = [
 	"brig",
 	"infirmary",
 	"armory",
-	"cafe",
 	"kitchen",
 	"bathroom",
 	"bedroom",
@@ -280,18 +277,24 @@ const NOUNS = [
 	"ass",
 ] as const;
 
-type NoDuplicates<T extends readonly unknown[]> = T extends readonly [infer X, ...infer Rest]
-	? X extends Rest[number]
-		? never
-		: readonly [X, ...NoDuplicates<Rest>]
-	: T;
+function assertNoDuplicates<T extends readonly string[]>(arr: T, name: string): void {
+	const seen = new Set<string>();
+	for (const item of arr) {
+		if (seen.has(item)) {
+			throw new Error(`Duplicate ${name}: ${item}`);
+		}
+		seen.add(item);
+	}
+}
+
+// Check for duplicates at module load time
+if (import.meta.env.DEV) {
+	assertNoDuplicates(ADJECTIVES, "adjective");
+	assertNoDuplicates(NOUNS, "noun");
+}
 
 export function room(): string {
-	// Let Typescript enforce we didn't accidentally duplicate an adjective or noun.
-	const adjectives: NoDuplicates<typeof ADJECTIVES> = ADJECTIVES;
-	const nouns: NoDuplicates<typeof NOUNS> = NOUNS;
-
-	const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-	const noun = nouns[Math.floor(Math.random() * nouns.length)];
+	const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+	const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
 	return `${adj}-${noun}`;
 }

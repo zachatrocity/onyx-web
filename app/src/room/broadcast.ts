@@ -207,21 +207,15 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 	#runTarget(effect: Effect) {
 		if (!(this.source instanceof Watch.Broadcast)) return;
 
-		const catalog = effect.get(this.source.video.catalog);
-		if (!catalog) return;
+		const display = effect.get(this.source.video.display);
+		if (!display) return;
 
-		for (const rendition of catalog) {
-			if (!rendition.config.displayAspectHeight || !rendition.config.displayAspectWidth) continue;
+		const pixels = display.height * display.width;
+		const scale = effect.get(this.scale);
+		const zoom = effect.get(this.zoom);
 
-			const pixels = rendition.config.displayAspectHeight * rendition.config.displayAspectWidth;
-			const scale = effect.get(this.scale);
-			const zoom = effect.get(this.zoom);
-
-			const scaled = pixels * scale * zoom;
-			effect.set(this.source.video.target, { pixels: scaled });
-
-			return;
-		}
+		const scaled = pixels * scale * zoom;
+		effect.set(this.source.video.target, { pixels: scaled });
 	}
 
 	tick(now: DOMHighResTimeStamp) {

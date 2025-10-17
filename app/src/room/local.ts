@@ -80,16 +80,15 @@ export class Local {
 					enabled: Settings.camera.enabled,
 					config: {
 						maxPixels: 640 * 640,
-						flip: true,
 					},
 				},
 				sd: {
 					enabled: Settings.camera.enabled,
 					config: {
 						maxPixels: 320 * 320,
-						flip: true,
 					},
 				},
+				flip: true,
 			},
 			audio: {
 				enabled: Settings.microphone.enabled,
@@ -155,7 +154,7 @@ export class Local {
 				hd: {
 					enabled: this.screen.enabled,
 					config: {
-						maxPixels: 1920 * 1920,
+						maxPixels: 1200 * 1200,
 						bitrateScale: 0.08,
 					},
 				},
@@ -163,7 +162,7 @@ export class Local {
 				sd: {
 					enabled: this.screen.enabled,
 					config: {
-						maxPixels: 960 * 960,
+						maxPixels: 600 * 600,
 						bitrateScale: 0.06,
 					},
 				},

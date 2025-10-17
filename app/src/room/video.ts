@@ -1,4 +1,3 @@
-import { Publish, Watch } from "@kixelated/hang";
 import { Effect, Signal } from "@kixelated/signals";
 import * as Api from "../api";
 import Settings from "../settings";
@@ -46,9 +45,6 @@ export class Video {
 	// Render avatars and emojis at this size
 	#renderSize = new Signal<number>(128);
 
-	// Whether to flip the video horizontally (for self-preview)
-	flip = new Signal<boolean>(false);
-
 	constructor(broadcast: Broadcast) {
 		this.broadcast = broadcast;
 
@@ -88,20 +84,8 @@ export class Video {
 		this.broadcast.signals.effect(this.#runAvatar.bind(this));
 		this.broadcast.signals.effect(this.#runTargetSize.bind(this));
 		this.broadcast.signals.effect(this.#runMemeTransition.bind(this));
-		this.broadcast.signals.effect(this.#runFlip.bind(this));
 
 		this.broadcast.signals.effect(this.#runRenderSize.bind(this));
-	}
-
-	#runFlip(effect: Effect) {
-		// Flipping is a mess because there's no way to encode a flipped frame, only to decode it flipped.
-		if (this.broadcast.source instanceof Publish.Broadcast) {
-			const flip = effect.get(this.broadcast.source.video.hd.config)?.flip ?? false;
-			this.flip.set(flip);
-		} else if (this.broadcast.source instanceof Watch.Broadcast) {
-			const flip = effect.get(this.broadcast.source.video.active)?.config.flip ?? false;
-			this.flip.set(flip);
-		}
 	}
 
 	#runAvatar(effect: Effect) {
@@ -164,9 +148,9 @@ export class Video {
 	}
 
 	#runTargetSize(effect: Effect) {
-		const frame = effect.get(this.broadcast.source.video.frame);
-		if (frame) {
-			this.targetSize.set(Vector.create(frame.displayWidth, frame.displayHeight));
+		const display = effect.get(this.broadcast.source.video.display);
+		if (display) {
+			this.targetSize.set(Vector.create(display.width, display.height));
 			return;
 		}
 

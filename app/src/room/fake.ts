@@ -1,5 +1,4 @@
 import { Catalog } from "@kixelated/hang";
-import { u53 } from "@kixelated/hang/catalog";
 import { Effect, Signal } from "@kixelated/signals";
 import { Canvas } from "./canvas";
 import { Sound } from "./sound";
@@ -50,15 +49,18 @@ export class FakeBroadcast {
 			enabled: new Signal(false),
 			active: new Signal<boolean | undefined>(undefined),
 		},
+		catalog: new Signal<Catalog.Audio | undefined>(undefined),
 	};
 
 	video = {
 		frame: new Signal<VideoFrame | undefined>(undefined),
-		catalog: new Signal<Catalog.Video[] | undefined>(undefined),
+		display: new Signal<{ width: number; height: number } | undefined>(undefined),
 		detection: {
 			enabled: new Signal(false),
 			objects: new Signal<Catalog.DetectionObjects | undefined>(undefined),
 		},
+		flip: new Signal<boolean | undefined>(undefined),
+		catalog: new Signal<Catalog.Video | undefined>(undefined),
 	};
 
 	signals = new Effect();
@@ -116,17 +118,10 @@ export class FakeBroadcast {
 		video.requestVideoFrameCallback(onFrame);
 
 		video.onloadedmetadata = () => {
-			this.video.catalog.set([
-				{
-					track: { name: "video", priority: 0 },
-					config: {
-						codec: "fake",
-						// Required for the correct display size.
-						displayAspectWidth: u53(video.videoWidth),
-						displayAspectHeight: u53(video.videoHeight),
-					},
-				},
-			]);
+			this.video.display.set({
+				width: video.videoWidth,
+				height: video.videoHeight,
+			});
 		};
 
 		// TODO Ideally we visualize the audio even when muted, but not suspended.
@@ -152,7 +147,7 @@ export class FakeBroadcast {
 				return undefined;
 			});
 
-			this.video.catalog.set(undefined);
+			this.video.display.set(undefined);
 		};
 	}
 
@@ -166,16 +161,10 @@ export class FakeBroadcast {
 				return new VideoFrame(image, { timestamp: 0 });
 			});
 
-			this.video.catalog.set([
-				{
-					track: { name: "image", priority: 0 },
-					config: {
-						codec: "fake",
-						displayAspectWidth: u53(image.width),
-						displayAspectHeight: u53(image.height),
-					},
-				},
-			]);
+			this.video.display.set({
+				width: image.width,
+				height: image.height,
+			});
 		};
 	}
 
@@ -185,7 +174,7 @@ export class FakeBroadcast {
 			return undefined;
 		});
 
-		this.video.catalog.set(undefined);
+		this.video.display.set(undefined);
 	}
 
 	close() {
