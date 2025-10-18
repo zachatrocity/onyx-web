@@ -14,19 +14,11 @@ resource "linode_instance" "relay" {
   # Open firewall for QUIC/WebTransport
   firewall_id = linode_firewall.relay.id
 
-  # Bootstrap script to apply NixOS configuration
-  stackscript_id = linode_stackscript.nixos_bootstrap.id
+  # Bootstrap script - only installs Nix and creates directories
+  stackscript_id = linode_stackscript.bootstrap.id
   stackscript_data = {
-    hostname      = "relay-${each.key}.${var.relay_subdomain}.${var.domain}"
-    node_name     = each.key
-    cluster_root  = "relay-us-east.${var.relay_subdomain}.${var.domain}"
-    public_cert   = base64encode("${acme_certificate.relay.certificate_pem}${acme_certificate.relay.issuer_pem}")
-    public_key    = base64encode(acme_certificate.relay.private_key_pem)
-    internal_cert = base64encode("${tls_locally_signed_cert.relay_internal[each.key].cert_pem}${tls_self_signed_cert.internal.cert_pem}")
-    internal_key  = base64encode(tls_private_key.relay_internal[each.key].private_key_pem)
-    internal_ca   = base64encode(tls_self_signed_cert.internal.cert_pem)
-    root_key      = base64encode(file("../root.jwk"))
-    cluster_token = base64encode(file("../cluster.jwt"))
+    hostname    = "${each.key}.${var.domain}"
+    gcp_account = google_service_account_key.moq_cert_dns.private_key
   }
 
   tags = ["relay", "moq"]
@@ -77,10 +69,10 @@ resource "linode_firewall" "relay" {
   tags = ["relay"]
 }
 
-# Bootstrap script to configure NixOS on first boot
-resource "linode_stackscript" "nixos_bootstrap" {
-  label       = "nixos-moq-relay-bootstrap"
-  description = "Bootstrap NixOS with moq-relay configuration"
-  script      = file("${path.module}/nixos-bootstrap.sh")
+# Bootstrap script to install Nix on first boot
+resource "linode_stackscript" "bootstrap" {
+  label       = "moq-relay-bootstrap"
+  description = "Bootstrap Debian with Nix for moq-relay"
+  script      = file("${path.module}/bootstrap.sh")
   images      = ["linode/debian12"]
 }

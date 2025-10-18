@@ -1,0 +1,36 @@
+# Deploy moq-relay and moq-cert to all nodes
+deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sg")
+
+# Deploy moq-relay and moq-cert to a specific node
+deploy node:
+	@echo "Deploying to {{node}}.moq.hang.live..."
+
+	@echo "  Copying secrets to /var/lib/moq-relay/..."
+	@rsync -av --chmod=D755,F644 -e "ssh -o StrictHostKeyChecking=no" secrets/ root@{{node}}.moq.hang.live:/var/lib/moq-relay/
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod 600 /var/lib/moq-relay/root.jwk"
+
+	@echo "  Copying systemd units to /etc/systemd/system/..."
+	@rsync -av -e "ssh -o StrictHostKeyChecking=no" systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
+
+	@echo "  Enabling and starting services..."
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "\
+		systemctl daemon-reload && \
+		systemctl enable moq-cert.timer && \
+		systemctl enable moq-relay.service && \
+		systemctl start moq-cert.timer && \
+		systemctl start moq-cert.service && \
+		systemctl restart moq-relay.service"
+
+# Check status of a node
+status node:
+	@echo "=== {{node}}.moq.hang.live ==="
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "systemctl status moq-relay --no-pager"
+
+ssh node:
+	@ssh root@{{node}}.moq.hang.live
+
+status-all: (status "use") (status "usw") (status "euc") (status "sg")
+
+# View logs from a specific node (e.g., just logs use)
+logs node:
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "journalctl -u moq-relay -f"

@@ -11,15 +11,9 @@ variable "gcp_project" {
 }
 
 variable "domain" {
-  description = "Base domain name"
+  description = "Relay domain name"
   type        = string
-  default     = "hang.live"
-}
-
-variable "relay_subdomain" {
-  description = "Subdomain for relay servers"
-  type        = string
-  default     = "moq"
+  default     = "moq.hang.live"
 }
 
 variable "email" {
@@ -31,7 +25,6 @@ variable "email" {
 variable "ssh_keys" {
   description = "SSH public keys for root access"
   type        = list(string)
-  default     = []
 }
 
 # Relay node definitions

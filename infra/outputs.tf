@@ -12,7 +12,7 @@ output "relay_hostnames" {
   description = "Hostnames of relay nodes"
   value = {
     for name, _ in local.relays :
-    name => "${name}.${var.relay_subdomain}.${var.domain}"
+    name => "${name}.${var.domain}"
   }
 }
 
@@ -27,10 +27,16 @@ output "root_passwords" {
 
 output "relay_url" {
   description = "Main relay URL for clients"
-  value       = "https://${var.relay_subdomain}.${var.domain}"
+  value       = "https://${var.domain}"
 }
 
-output "certificate_expiry" {
-  description = "LetsEncrypt certificate expiry date"
-  value       = acme_certificate.relay.certificate_not_after
+output "relay_zone_nameservers" {
+  description = "Nameservers for the relay DNS zone"
+  value       = google_dns_managed_zone.relay.name_servers
+}
+
+output "gcp_dns_credentials" {
+  description = "GCP service account credentials for DNS management (base64 encoded)"
+  value       = google_service_account_key.moq_cert_dns.private_key
+  sensitive   = true
 }
