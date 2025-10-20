@@ -233,7 +233,7 @@ export class Local {
 						speaking,
 					}));
 				},
-				speaking ? 1000 : 200,
+				speaking ? 1000 : 100,
 			);
 		});
 
