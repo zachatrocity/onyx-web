@@ -18,7 +18,7 @@ resource "linode_instance" "relay" {
   stackscript_id = linode_stackscript.bootstrap.id
   stackscript_data = {
     hostname    = "${each.key}.${var.domain}"
-    gcp_account = google_service_account_key.moq_cert_dns.private_key
+    gcp_account = google_service_account_key.relay.private_key
   }
 
   tags = ["relay", "moq"]

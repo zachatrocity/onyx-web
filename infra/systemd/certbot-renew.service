@@ -1,0 +1,14 @@
+[Unit]
+Description=Certbot Certificate Renewal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Renew certificates if they're close to expiration
+ExecStart=/root/.nix-profile/bin/certbot renew
+
+StandardOutput=journal
+StandardError=journal

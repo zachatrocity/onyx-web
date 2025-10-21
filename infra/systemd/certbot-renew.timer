@@ -1,5 +1,5 @@
 [Unit]
-Description=MoQ Certificate Renewal Timer
+Description=Certbot Certificate Renewal Timer
 After=network-online.target
 
 [Timer]

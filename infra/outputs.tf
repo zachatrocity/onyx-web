@@ -35,8 +35,8 @@ output "relay_zone_nameservers" {
   value       = google_dns_managed_zone.relay.name_servers
 }
 
-output "gcp_dns_credentials" {
+output "gcp_credentials" {
   description = "GCP service account credentials for DNS management (base64 encoded)"
-  value       = google_service_account_key.moq_cert_dns.private_key
+  value       = google_service_account_key.relay.private_key
   sensitive   = true
 }

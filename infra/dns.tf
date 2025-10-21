@@ -47,21 +47,9 @@ locals {
   }
 }
 
-# Service account for DNS certificate management
-resource "google_service_account" "moq_cert_dns" {
-  account_id   = "moq-cert-dns"
-  display_name = "MOQ Certificate DNS Manager"
-  description  = "Service account for moq-cert to manage DNS records for ACME DNS-01 challenges"
-}
-
 # Grant DNS admin permissions to the service account
-resource "google_project_iam_member" "moq_cert_dns_admin" {
+resource "google_project_iam_member" "dns_admin" {
   project = var.gcp_project
   role    = "roles/dns.admin"
-  member  = "serviceAccount:${google_service_account.moq_cert_dns.email}"
-}
-
-# Generate service account key
-resource "google_service_account_key" "moq_cert_dns" {
-  service_account_id = google_service_account.moq_cert_dns.name
+  member  = "serviceAccount:${google_service_account.relay.email}"
 }

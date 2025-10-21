@@ -5,19 +5,26 @@ deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sg")
 deploy node:
 	@echo "Deploying to {{node}}.moq.hang.live..."
 
+	@echo "  Copying flake files to /etc/moq-relay/..."
+	@scp -o StrictHostKeyChecking=no flake.nix flake.lock root@{{node}}.moq.hang.live:/etc/moq-relay/
+
+	@echo "  Installing Nix dependencies..."
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "cd /etc/moq-relay && nix profile install .#default"
+
 	@echo "  Copying secrets to /var/lib/moq-relay/..."
-	@rsync -av --chmod=D755,F644 -e "ssh -o StrictHostKeyChecking=no" secrets/ root@{{node}}.moq.hang.live:/var/lib/moq-relay/
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod 600 /var/lib/moq-relay/root.jwk"
+	@scp -o StrictHostKeyChecking=no -r secrets/* root@{{node}}.moq.hang.live:/var/lib/moq-relay/
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod -R 755 /var/lib/moq-relay && chmod 644 /var/lib/moq-relay/* && chmod 600 /var/lib/moq-relay/root.jwk"
 
 	@echo "  Copying systemd units to /etc/systemd/system/..."
-	@rsync -av -e "ssh -o StrictHostKeyChecking=no" systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
+	@scp -o StrictHostKeyChecking=no systemd/* root@{{node}}.moq.hang.live:/etc/systemd/system/
 
 	@echo "  Enabling and starting services..."
 	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "\
 		systemctl daemon-reload && \
-		systemctl enable moq-cert.timer && \
+		systemctl enable moq-cert.service && \
+		systemctl enable certbot-renew.timer && \
 		systemctl enable moq-relay.service && \
-		systemctl start moq-cert.timer && \
+		systemctl start certbot-renew.timer && \
 		systemctl start moq-cert.service && \
 		systemctl restart moq-relay.service"
 

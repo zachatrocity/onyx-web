@@ -1,28 +1,23 @@
 [Unit]
-Description=MoQ Certificate Manager
+Description=MoQ Initial Certificate
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 EnvironmentFile=/etc/moq-relay/env
+Environment=PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Install certbot and plugin if needed
-ExecStartPre=/bin/sh -c 'if ! command -v certbot &> /dev/null; then nix profile install nixpkgs#certbot nixpkgs#certbot-dns-google; fi'
-
-# Request wildcard cert for moq.hang.live and node-specific cert
-ExecStart=/bin/sh -c 'certbot certonly \
+# Obtain initial certificate
+ExecStart=/root/.nix-profile/bin/certbot certonly \
   --dns-google \
-  --dns-google-credentials /etc/moq-relay/gcp-dns.json \
+  --dns-google-credentials /var/lib/moq-relay/gcp.json \
   --non-interactive \
   --agree-tos \
   --email admin@hang.live \
   -d moq.hang.live \
-  -d ${NODE_NAME}.moq.hang.live \
-  --deploy-hook "systemctl reload-or-restart moq-relay.service"'
-
-# Mark that we've run at least once
-ExecStartPost=/usr/bin/touch /var/lib/moq-relay/.cert-initialized
+  -d ${NODE_NAME}.moq.hang.live
 
 StandardOutput=journal
 StandardError=journal

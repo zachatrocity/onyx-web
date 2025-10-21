@@ -2,8 +2,7 @@
 Description=MoQ Relay Server
 After=network-online.target moq-cert.service
 Wants=network-online.target
-# Wait for moq-cert to have run at least once
-ConditionPathExists=/var/lib/moq-relay/.cert-initialized
+Requires=moq-cert.service
 
 [Service]
 Type=simple
