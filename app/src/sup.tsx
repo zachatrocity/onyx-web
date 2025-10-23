@@ -48,7 +48,7 @@ export function Sup(props: { canvas: Canvas; room: string }): JSX.Element {
 
 		const data = await response.json();
 
-		connection.url.set(new URL(data.token, import.meta.env.VITE_RELAY_URL));
+		connection.url.set(new URL(data.url));
 
 		local.camera.path.set(Moq.Path.from(data.path, "camera"));
 		local.share.path.set(Moq.Path.from(data.path, "screen"));
