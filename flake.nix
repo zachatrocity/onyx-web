@@ -29,6 +29,7 @@
 			cargo-tauri
             bun
             just
+            rsync
 
             # Icon generation tools
             imagemagick

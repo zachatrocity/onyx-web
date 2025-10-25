@@ -9,24 +9,18 @@ echo "Starting bootstrap for moq-relay on Debian..."
 # Set hostname
 hostnamectl set-hostname "$HOSTNAME"
 
+# Install rsync
+echo "Installing rsync..."
+apt-get update
+apt-get install -y rsync
+
 # Create directories
-mkdir -p /var/lib/moq-relay
-mkdir -p /etc/moq-relay
-chmod 755 /var/lib/moq-relay
-chmod 755 /etc/moq-relay
+mkdir -p /var/lib/moq
+chmod 755 /var/lib/moq
 
 # Write GCP credentials
-echo "$GCP_ACCOUNT" | base64 -d > /var/lib/moq-relay/gcp.json
-chmod 600 /var/lib/moq-relay/gcp.json
-
-# Extract node name from hostname (e.g., "use" from "use.moq.hang.live")
-NODE_NAME=$(echo "$HOSTNAME" | cut -d. -f1)
-
-# Write environment file
-cat > /etc/moq-relay/env <<EOF
-NODE_NAME=$NODE_NAME
-CLUSTER_NODE=$HOSTNAME
-EOF
+echo "$GCP_ACCOUNT" | base64 -d > /var/lib/moq/gcp.json
+chmod 600 /var/lib/moq/gcp.json
 
 # Install Nix (multi-user installation)
 echo "Installing Nix package manager..."

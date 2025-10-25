@@ -1,22 +1,23 @@
 # Deploy moq-relay and moq-cert to all nodes
-deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sg")
+# [parallel]
+deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sea")
 
 # Deploy moq-relay and moq-cert to a specific node
 deploy node:
 	@echo "Deploying to {{node}}.moq.hang.live..."
 
-	@echo "  Copying flake files to /etc/moq-relay/..."
-	@scp -o StrictHostKeyChecking=no flake.nix flake.lock root@{{node}}.moq.hang.live:/etc/moq-relay/
+	@echo "  Copying flake files to /var/lib/moq"
+	@rsync -e "ssh -o StrictHostKeyChecking=no" -az flake.nix flake.lock root@{{node}}.moq.hang.live:/var/lib/moq/
 
-	@echo "  Installing Nix dependencies..."
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "cd /etc/moq-relay && nix profile install .#default"
-
-	@echo "  Copying secrets to /var/lib/moq-relay/..."
-	@scp -o StrictHostKeyChecking=no -r secrets/* root@{{node}}.moq.hang.live:/var/lib/moq-relay/
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod -R 755 /var/lib/moq-relay && chmod 644 /var/lib/moq-relay/* && chmod 600 /var/lib/moq-relay/root.jwk"
+	@echo "  Copying secrets to /var/lib/moq"
+	@rsync -e "ssh -o StrictHostKeyChecking=no" -az secrets/ root@{{node}}.moq.hang.live:/var/lib/moq/
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod -R 755 /var/lib/moq && chmod 644 /var/lib/moq/* && chmod 600 /var/lib/moq/root.jwk"
 
 	@echo "  Copying systemd units to /etc/systemd/system/..."
-	@scp -o StrictHostKeyChecking=no systemd/* root@{{node}}.moq.hang.live:/etc/systemd/system/
+	@rsync -e "ssh -o StrictHostKeyChecking=no" -az systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
+
+	@echo "  Building and caching packages..."
+	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "cd /var/lib/moq && nix build .#moq-relay .#certbot"
 
 	@echo "  Enabling and starting services..."
 	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "\
@@ -36,7 +37,8 @@ status node:
 ssh node:
 	@ssh root@{{node}}.moq.hang.live
 
-status-all: (status "use") (status "usw") (status "euc") (status "sg")
+# [parallel]
+status-all: (status "use") (status "usw") (status "euc") (status "sea")
 
 # View logs from a specific node (e.g., just logs use)
 logs node:

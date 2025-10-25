@@ -43,7 +43,7 @@ locals {
     use = "us-east1"        # Newark, NJ -> closest GCP region
     usw = "us-west1"        # Fremont, CA -> closest GCP region
     euc = "europe-west3"    # Frankfurt -> closest GCP region
-    sg  = "asia-southeast1" # Singapore -> closest GCP region
+    sea  = "asia-southeast1" # Singapore -> closest GCP region
   }
 }
 

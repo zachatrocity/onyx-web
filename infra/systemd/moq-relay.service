@@ -5,20 +5,19 @@ Wants=network-online.target
 Requires=moq-cert.service
 
 [Service]
-Type=simple
+Type=notify
 User=root
-WorkingDirectory=/var/lib/moq-relay
-EnvironmentFile=/etc/moq-relay/env
+WorkingDirectory=/var/lib/moq
 
-ExecStart=/nix/var/nix/profiles/default/bin/nix run github:kixelated/moq?dir=rs#moq-relay -- \
+ExecStart=/bin/sh -c '/nix/var/nix/profiles/default/bin/nix run path:/var/lib/moq#moq-relay -- \
   --listen [::]:443 \
   --tls-cert /etc/letsencrypt/live/moq.hang.live/fullchain.pem \
   --tls-key /etc/letsencrypt/live/moq.hang.live/privkey.pem \
-  --auth /var/lib/moq-relay/root.jwk \
+  --auth-key /var/lib/moq/root.jwk \
   --auth-public anon \
-  --cluster-node ${CLUSTER_NODE} \
   --cluster-root use.moq.hang.live \
-  --cluster-token /var/lib/moq-relay/cluster.jwt
+  --cluster-node "$(hostname)" \
+  --cluster-token /var/lib/moq/cluster.jwt'
 
 Restart=always
 RestartSec=10

@@ -6,18 +6,15 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-EnvironmentFile=/etc/moq-relay/env
-Environment=PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
 # Obtain initial certificate
-ExecStart=/root/.nix-profile/bin/certbot certonly \
+ExecStart=/bin/sh -c '/nix/var/nix/profiles/default/bin/nix run path:/var/lib/moq#certbot -- certonly \
   --dns-google \
-  --dns-google-credentials /var/lib/moq-relay/gcp.json \
+  --dns-google-credentials /var/lib/moq/gcp.json \
   --non-interactive \
   --agree-tos \
   --email admin@hang.live \
   -d moq.hang.live \
-  -d ${NODE_NAME}.moq.hang.live
+  -d $(hostname)'
 
 StandardOutput=journal
 StandardError=journal
