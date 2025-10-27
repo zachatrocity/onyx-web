@@ -26,11 +26,13 @@ chmod 600 /var/lib/moq/gcp.json
 echo "Installing Nix package manager..."
 sh <(curl -L https://nixos.org/nix/install) --daemon --yes
 
-# Enable flakes
+# Enable flakes and configure Cachix
 mkdir -p /etc/nix
 cat > /etc/nix/nix.conf <<EOF
 experimental-features = nix-command flakes
 auto-optimise-store = true
+extra-substituters = https://kixelated.cachix.org
+extra-trusted-public-keys = kixelated.cachix.org-1:qz7smVsZXSJlRlW3V7/HGA0hCSF0uFmZz9WTpp1wBpg=
 EOF
 
 echo "Bootstrap complete. Deploy via 'just deploy <node>' to install services and credentials."

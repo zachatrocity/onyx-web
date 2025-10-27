@@ -9,15 +9,15 @@ Type=notify
 User=root
 WorkingDirectory=/var/lib/moq
 
-ExecStart=/bin/sh -c '/nix/var/nix/profiles/default/bin/nix run path:/var/lib/moq#moq-relay -- \
+ExecStart=/var/lib/moq/result/bin/moq-relay \
   --listen [::]:443 \
   --tls-cert /etc/letsencrypt/live/moq.hang.live/fullchain.pem \
   --tls-key /etc/letsencrypt/live/moq.hang.live/privkey.pem \
   --auth-key /var/lib/moq/root.jwk \
   --auth-public anon \
   --cluster-root use.moq.hang.live \
-  --cluster-node "$(hostname)" \
-  --cluster-token /var/lib/moq/cluster.jwt'
+  --cluster-node %H \
+  --cluster-token /var/lib/moq/cluster.jwt
 
 Restart=always
 RestartSec=10

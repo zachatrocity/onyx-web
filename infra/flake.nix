@@ -18,6 +18,7 @@
 				default = pkgs.certbot.withPlugins (ps: [ ps.certbot-dns-google ]);
 				certbot = pkgs.certbot.withPlugins (ps: [ ps.certbot-dns-google ]);
 				moq-relay = moq.packages.${system}.moq-relay;
+				cachix = pkgs.cachix;
 			};
 		};
 }

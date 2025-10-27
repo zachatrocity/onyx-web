@@ -1,5 +1,5 @@
 # Deploy moq-relay and moq-cert to all nodes
-# [parallel]
+[parallel]
 deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sea")
 
 # Deploy moq-relay and moq-cert to a specific node
@@ -7,20 +7,20 @@ deploy node:
 	@echo "Deploying to {{node}}.moq.hang.live..."
 
 	@echo "  Copying flake files to /var/lib/moq"
-	@rsync -e "ssh -o StrictHostKeyChecking=no" -az flake.nix flake.lock root@{{node}}.moq.hang.live:/var/lib/moq/
+	@rsync -az flake.nix flake.lock root@{{node}}.moq.hang.live:/var/lib/moq/
 
 	@echo "  Copying secrets to /var/lib/moq"
-	@rsync -e "ssh -o StrictHostKeyChecking=no" -az secrets/ root@{{node}}.moq.hang.live:/var/lib/moq/
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "chmod -R 755 /var/lib/moq && chmod 644 /var/lib/moq/* && chmod 600 /var/lib/moq/root.jwk"
+	@rsync -az secrets/ root@{{node}}.moq.hang.live:/var/lib/moq/
+	@ssh root@{{node}}.moq.hang.live "chmod -R 755 /var/lib/moq && chmod 600 /var/lib/moq/*.jwk /var/lib/moq/*.jwt"
 
 	@echo "  Copying systemd units to /etc/systemd/system/..."
-	@rsync -e "ssh -o StrictHostKeyChecking=no" -az systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
+	@rsync -az systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
 
 	@echo "  Building and caching packages..."
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "cd /var/lib/moq && nix build .#moq-relay .#certbot"
+	@ssh root@{{node}}.moq.hang.live "cd /var/lib/moq && nix build .#moq-relay .#certbot"
 
 	@echo "  Enabling and starting services..."
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "\
+	@ssh root@{{node}}.moq.hang.live "\
 		systemctl daemon-reload && \
 		systemctl enable moq-cert.service && \
 		systemctl enable certbot-renew.timer && \
@@ -32,14 +32,14 @@ deploy node:
 # Check status of a node
 status node:
 	@echo "=== {{node}}.moq.hang.live ==="
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "systemctl status moq-relay --no-pager"
+	@ssh root@{{node}}.moq.hang.live "systemctl status moq-relay --no-pager"
+
+[parallel]
+status-all: (status "use") (status "usw") (status "euc") (status "sea")
 
 ssh node:
 	@ssh root@{{node}}.moq.hang.live
 
-# [parallel]
-status-all: (status "use") (status "usw") (status "euc") (status "sea")
-
 # View logs from a specific node (e.g., just logs use)
 logs node:
-	@ssh -o StrictHostKeyChecking=no root@{{node}}.moq.hang.live "journalctl -u moq-relay -f"
+	@ssh root@{{node}}.moq.hang.live "journalctl -u moq-relay -f"

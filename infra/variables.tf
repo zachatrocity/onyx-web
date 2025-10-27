@@ -42,7 +42,7 @@ locals {
       region = "eu-central"   # Frankfurt, Germany
       type   = "g6-nanode-1"
     }
-    sg = {
+    sea = {
       region = "ap-south"     # Singapore
       type   = "g6-nanode-1"
     }
