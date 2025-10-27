@@ -32,7 +32,7 @@ cat > /etc/nix/nix.conf <<EOF
 experimental-features = nix-command flakes
 auto-optimise-store = true
 extra-substituters = https://kixelated.cachix.org
-extra-trusted-public-keys = kixelated.cachix.org-1:qz7smVsZXSJlRlW3V7/HGA0hCSF0uFmZz9WTpp1wBpg=
+extra-trusted-public-keys = kixelated.cachix.org-1:CmFcV0lyM6KuVM2m9mih0q4SrAa0XyCsiM7GHrz3KKk=
 EOF
 
 echo "Bootstrap complete. Deploy via 'just deploy <node>' to install services and credentials."

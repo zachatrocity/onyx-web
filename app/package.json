@@ -31,6 +31,7 @@
 		"@types/semver": "^7.7.1",
 		"comlink": "^4.4.2",
 		"dompurify": "^3.2.6",
+		"hono": "^4.10.3",
 		"jszip": "^3.10.1",
 		"kokoro-js": "^1.2.1",
 		"marked": "^15.0.12",
