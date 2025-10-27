@@ -11,7 +11,7 @@ export APPLE_API_KEY_PATH="$TEMP_DIR/AuthKey_${APPLE_API_KEY}.p8"
 export API_PRIVATE_KEYS_DIR="$TEMP_DIR" # For altool
 
 # Build and sign the app
-bun tauri ios build --export-method app-store-connect
+cargo tauri ios build --export-method app-store-connect
 
 # Upload the app to App Store Connect
 xcrun altool --upload-app --type ios --file "gen/apple/build/arm64/hang.ipa" --apple-id "$APPLE_APP_ID" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"

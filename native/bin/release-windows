@@ -7,7 +7,7 @@ VERSION=$(cargo pkgid | cut -d'@' -f2)
 MODE="debug"
 
 # Build and sign the app
-bun tauri build --$MODE
+cargo tauri build --$MODE
 
 SIGNATURE=$(cat "target/$MODE/bundle/nsis/hang_${VERSION}_x64-setup.exe.sig")
 

@@ -16,4 +16,4 @@ echo "keyAlias=${ANDROID_KEYSTORE_ALIAS}" > "gen/android/keystore.properties"
 echo "password=${ANDROID_KEYSTORE_PASSWORD}" >> "gen/android/keystore.properties"
 echo "storeFile=${TEMP_DIR}/keystore.jks" >> "gen/android/keystore.properties"
 
-bun tauri android build --debug --aab
+cargo tauri android build --debug --aab

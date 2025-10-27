@@ -20,7 +20,7 @@ for ARCH in x86_64 aarch64; do
 	TARGET="$ARCH-apple-darwin"
 
 	# Build and sign the app
-	bun tauri build --$MODE --target "$TARGET"
+	cargo tauri build --$MODE --target "$TARGET"
 
 	SIGNATURE=$(cat "target/$TARGET/$MODE/bundle/macos/hang.app.tar.gz.sig")
 	DMG=$(basename target/$TARGET/$MODE/bundle/dmg/hang_${VERSION}_*.dmg)
