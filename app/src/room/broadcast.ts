@@ -225,6 +225,16 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		// Update mesh based on deformation velocity and zoom deformation
 		this.mesh.update(this.deformVelocity, this.zoomDeform);
 
+		// Decay deformation effects smoothly over time
+		const DEFORM_DECAY = 0.95; // Higher = slower decay (lasts longer)
+		const ZOOM_DECAY = 0.8; // Zoom decays faster
+
+		// Decay drag deformation velocity
+		this.deformVelocity = this.deformVelocity.mult(DEFORM_DECAY);
+
+		// Decay zoom deformation
+		this.zoomDeform *= ZOOM_DECAY;
+
 		// Update opacity based on online status
 		const fadeTime = 300; // ms
 		const elapsed = now - this.#onlineTransition;

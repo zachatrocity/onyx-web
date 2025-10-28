@@ -4,7 +4,7 @@
 // Deformation strength constants
 const float ZOOM_FALLOFF_DISTANCE = 0.7;
 const float ZOOM_DEFORM_STRENGTH = 0.3;
-const float DRAG_FALLOFF_RATE = 1.5;
+const float DRAG_FALLOFF_DISTANCE = 0.5; // Radius of influence for drag effect
 
 // Apply mesh deformation based on drag and zoom
 // vertexPos: vertex position in normalized coordinates (0-1)
@@ -41,21 +41,26 @@ vec2 applyDeformation(
 		vertexPos += fromCenter * u_zoomDeform * zoomFalloff * ZOOM_DEFORM_STRENGTH;
 	}
 
-	// Now apply drag deformation in pixel space
+	// Now apply drag deformation in normalized space (like zoom)
 	vec2 deformation = vec2(0.0);
 
 	if (length(u_velocity) > 0.0) {
-		// Distance from this vertex to the drag point
+		// Distance from this vertex to the drag point in normalized space
 		float dist = distance(vertexPos, u_dragPoint);
 
 		// Falloff: stronger near drag point, weaker far away
-		// Using exponential falloff for smooth, natural feel
-		float falloff = exp(-dist * DRAG_FALLOFF_RATE);
+		// Using smoothstep for radius-based influence (similar to zoom)
+		float falloff = 1.0 - smoothstep(0.0, DRAG_FALLOFF_DISTANCE, dist);
 
-		// Apply velocity-based displacement with falloff
-		deformation = u_velocity * falloff * u_dragStrength;
+		// Normalize velocity to get direction
+		vec2 velocityDir = normalize(u_velocity);
+
+		// Apply directional displacement with falloff in normalized space
+		// Scale by bounds aspect ratio to keep deformation uniform
+		vec2 normalizedVelocity = velocityDir * length(u_velocity) / max(u_bounds.z, u_bounds.w);
+		deformation = normalizedVelocity * falloff * u_dragStrength;
 	}
 
-	// Scale and translate to bounds, with deformation applied in pixel space
-	return vertexPos * u_bounds.zw + u_bounds.xy + deformation;
+	// Apply deformation in normalized space, then scale and translate to pixel space
+	return (vertexPos + deformation) * u_bounds.zw + u_bounds.xy;
 }

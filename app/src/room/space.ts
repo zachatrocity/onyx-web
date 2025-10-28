@@ -140,8 +140,10 @@ export class Space {
 			const deltaX = mouse.x - currentCenter.x;
 			const deltaY = mouse.y - currentCenter.y;
 
-			// Set deformation velocity based on mouse movement
-			this.#dragging.deformVelocity = Vector.create(deltaX, deltaY);
+			// Add to deformation velocity based on mouse movement (additive)
+			this.#dragging.deformVelocity = this.#dragging.deformVelocity.add(
+				Vector.create(deltaX * 0.12, deltaY * 0.12), // Reduced from 0.2 to 0.12
+			);
 
 			// Update the position but don't publish it yet.
 			this.#dragging.position.mutate((position) => {
@@ -235,8 +237,8 @@ export class Space {
 			document.body.style.cursor = "zoom-in";
 		}
 
-		// Set zoom deformation based on scale direction and magnitude
-		broadcast.zoomDeform = scale * 15;
+		// Add to zoom deformation based on scale direction and magnitude (additive)
+		broadcast.zoomDeform += scale * 5; // Reduced from 15 to 5
 
 		// Update the scale, publishing it.
 		broadcast.position.update((prev) => ({
@@ -350,8 +352,10 @@ export class Space {
 			const deltaX = mouse.x - currentCenter.x;
 			const deltaY = mouse.y - currentCenter.y;
 
-			// Set deformation velocity based on touch movement
-			this.#dragging.deformVelocity = Vector.create(deltaX, deltaY);
+			// Add to deformation velocity based on touch movement (additive)
+			this.#dragging.deformVelocity = this.#dragging.deformVelocity.add(
+				Vector.create(deltaX * 0.12, deltaY * 0.12), // Reduced from 0.2 to 0.12
+			);
 
 			// Update the position but don't publish it yet.
 			this.#dragging.position.update((prev) => ({
@@ -390,9 +394,9 @@ export class Space {
 				const newScale = this.#pinchStartScale * scaleFactor;
 				const oldScale = this.#dragging.position.peek().s ?? 1;
 
-				// Set zoom deformation based on scale delta
+				// Add to zoom deformation based on scale delta (additive)
 				const scaleDelta = newScale - oldScale;
-				this.#dragging.zoomDeform = scaleDelta * 15;
+				this.#dragging.zoomDeform += scaleDelta * 5; // Reduced from 15 to 5
 
 				// Update the scale
 				this.#dragging.position.update((prev) => ({
