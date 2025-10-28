@@ -9,7 +9,7 @@ Type=notify
 User=root
 WorkingDirectory=/var/lib/moq
 
-ExecStart=/var/lib/moq/result/bin/moq-relay \
+ExecStart=/var/lib/moq/relay/bin/moq-relay \
   --listen [::]:443 \
   --tls-cert /etc/letsencrypt/live/moq.hang.live/fullchain.pem \
   --tls-key /etc/letsencrypt/live/moq.hang.live/privkey.pem \

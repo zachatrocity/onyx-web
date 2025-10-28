@@ -17,7 +17,7 @@ deploy node:
 	@rsync -az systemd/ root@{{node}}.moq.hang.live:/etc/systemd/system/
 
 	@echo "  Building and caching packages..."
-	@ssh root@{{node}}.moq.hang.live "cd /var/lib/moq && nix build .#moq-relay .#certbot"
+	@ssh root@{{node}}.moq.hang.live "cd /var/lib/moq && nix build .#moq-relay -o relay && nix build .#certbot -o cert"
 
 	@echo "  Enabling and starting services..."
 	@ssh root@{{node}}.moq.hang.live "\

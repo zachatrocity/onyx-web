@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 # Obtain initial certificate
-ExecStart=/bin/sh -c '/nix/var/nix/profiles/default/bin/nix run path:/var/lib/moq#certbot -- certonly \
+ExecStart=/bin/sh -c '/var/lib/moq/cert/bin/certbot certonly \
   --dns-google \
   --dns-google-credentials /var/lib/moq/gcp.json \
   --non-interactive \
