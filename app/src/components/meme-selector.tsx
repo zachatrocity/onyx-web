@@ -340,6 +340,7 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 	const activeTab = solid(Settings.meme.tab);
 	const [currentlyPlaying, setCurrentlyPlaying] = createSignal<string | null>(null);
 	const [modal, setModal] = createSignal<HTMLDivElement | undefined>(undefined);
+	let contentArea: HTMLDivElement | undefined;
 
 	// Clean up previews when component unmounts or closes
 	onCleanup(() => {
@@ -376,6 +377,15 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 			window.addEventListener("click", handleClickOutside);
 		}, 100);
 		onCleanup(() => window.removeEventListener("click", handleClickOutside));
+
+		// Add non-passive wheel listener to prevent scroll propagation
+		const handleWheel = (e: WheelEvent) => {
+			e.stopPropagation();
+		};
+		if (contentArea) {
+			contentArea.addEventListener("wheel", handleWheel, { passive: false });
+			onCleanup(() => contentArea?.removeEventListener("wheel", handleWheel));
+		}
 	});
 
 	const sendMeme = (memeName: string) => {
@@ -451,7 +461,7 @@ export function MemeSelector(props: MemeSelectorProps): JSX.Element {
 			</div>
 
 			{/* Content area */}
-			<div class="p-2 sm:p-3 overflow-y-auto flex-1 custom-scrollbar" onWheel={(e) => e.stopPropagation()}>
+			<div ref={contentArea} class="p-2 sm:p-3 overflow-y-auto flex-1 custom-scrollbar">
 				<Show when={activeTab() === "emoji"}>
 					<EmojiTab
 						chatInput={props.chatInput}
