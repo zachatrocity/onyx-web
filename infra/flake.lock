@@ -42,11 +42,11 @@
       },
       "locked": {
         "dir": "rs",
-        "lastModified": 1761535524,
-        "narHash": "sha256-oo2MIV/hecKsLkq8J82QvBWzK1dLm26QDJcXVxKp8Es=",
+        "lastModified": 1761615970,
+        "narHash": "sha256-ytk5K3sqgAxiVHm0kQNXk9ZUAOyqdv0CmPwOlr1M1Y4=",
         "owner": "kixelated",
         "repo": "moq",
-        "rev": "9998c5e58bfac1ba13c6767a776f8c09c20df2fe",
+        "rev": "a08b232a96f7fcca1dfd4cd643c3177a07eff826",
         "type": "github"
       },
       "original": {

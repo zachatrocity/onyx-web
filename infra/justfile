@@ -1,5 +1,4 @@
 # Deploy moq-relay and moq-cert to all nodes
-[parallel]
 deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sea")
 
 # Deploy moq-relay and moq-cert to a specific node
@@ -34,7 +33,6 @@ status node:
 	@echo "=== {{node}}.moq.hang.live ==="
 	@ssh root@{{node}}.moq.hang.live "systemctl status moq-relay --no-pager"
 
-[parallel]
 status-all: (status "use") (status "usw") (status "euc") (status "sea")
 
 ssh node:
