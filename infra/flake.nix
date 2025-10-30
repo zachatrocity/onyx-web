@@ -19,6 +19,8 @@
 				certbot = pkgs.certbot.withPlugins (ps: [ ps.certbot-dns-google ]);
 				moq-relay = moq.packages.${system}.moq-relay;
 				cachix = pkgs.cachix;
+				ffmpeg = pkgs.ffmpeg;
+				hang-cli = moq.packages.${system}.hang;
 			};
 		};
 }
