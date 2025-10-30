@@ -15,6 +15,9 @@ ExecStart=/var/lib/moq/relay/bin/moq-relay \
   --tls-key /etc/letsencrypt/live/moq.hang.live/privkey.pem \
   --auth-key /var/lib/moq/root.jwk \
   --auth-public anon \
+  --web-https-listen [::]:443 \
+  --web-https-cert /etc/letsencrypt/live/moq.hang.live/fullchain.pem \
+  --web-https-key /etc/letsencrypt/live/moq.hang.live/privkey.pem \
   --cluster-root use.moq.hang.live \
   --cluster-node %H \
   --cluster-token /var/lib/moq/cluster.jwt
