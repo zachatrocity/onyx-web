@@ -23,8 +23,10 @@ deploy node:
 		systemctl daemon-reload && \
 		systemctl enable moq-cert.service && \
 		systemctl enable certbot-renew.timer && \
+		systemctl enable vacuum.timer && \
 		systemctl enable moq-relay.service && \
 		systemctl start certbot-renew.timer && \
+		systemctl start vacuum.timer && \
 		systemctl start moq-cert.service && \
 		systemctl restart moq-relay.service"
 
@@ -64,7 +66,9 @@ deploy-pub:
 		systemctl daemon-reload && \
 		systemctl enable hang-bbb-prepare.service && \
 		systemctl enable hang-bbb.service && \
+		systemctl enable vacuum.timer && \
 		systemctl start hang-bbb-prepare.service && \
+		systemctl start vacuum.timer && \
 		systemctl restart hang-bbb.service"
 
 # Check status of publisher

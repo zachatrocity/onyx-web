@@ -8,6 +8,7 @@ Requires=moq-cert.service
 Type=notify
 User=root
 WorkingDirectory=/var/lib/moq
+Environment="RUST_LOG=trace"
 
 ExecStart=/var/lib/moq/relay/bin/moq-relay \
   --listen [::]:443 \
