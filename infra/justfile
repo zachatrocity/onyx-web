@@ -1,4 +1,5 @@
 # Deploy moq-relay and moq-cert to all nodes
+[parallel]
 deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sea")
 
 # Deploy moq-relay and moq-cert to a specific node
