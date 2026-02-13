@@ -1,5 +1,5 @@
-import { Catalog } from "@kixelated/hang";
-import { Effect, Signal } from "@kixelated/signals";
+import { Catalog } from "@moq/hang";
+import { Effect, Signal } from "@moq/signals";
 import { Canvas } from "./canvas";
 import { Sound } from "./sound";
 import { Space } from "./space";

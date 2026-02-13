@@ -13,7 +13,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@hono/zod-validator": "^0.7.2",
-        "@kixelated/moq-token": "workspace:*",
+        "@moq/token": "workspace:*",
         "drizzle-orm": "^0.44.5",
         "hono": "^4.9.4",
         "jose": "^6.0.13",
@@ -36,9 +36,9 @@
         "@fontsource-variable/montserrat": "^5.2.6",
         "@hang/api": "workspace:*",
         "@huggingface/transformers": "^3.7.2",
-        "@kixelated/hang": "workspace:*",
-        "@kixelated/moq": "workspace:*",
-        "@kixelated/signals": "workspace:*",
+        "@moq/hang": "workspace:*",
+        "@moq/lite": "workspace:*",
+        "@moq/signals": "workspace:*",
         "@solidjs/router": "^0.15.3",
         "@tailwindcss/vite": "^4.1.12",
         "@tauri-apps/api": "^2.8.0",
@@ -81,14 +81,13 @@
       },
     },
     "moq/js/hang": {
-      "name": "@kixelated/hang",
-      "version": "0.6.2",
+      "name": "@moq/hang",
+      "version": "0.1.0",
       "dependencies": {
-        "@huggingface/transformers": "^3.7.2",
         "@kixelated/libavjs-webcodecs-polyfill": "^0.5.5",
-        "@kixelated/moq": "workspace:^",
-        "@kixelated/signals": "workspace:^",
         "@libav.js/variant-opus-af": "^6.8.8",
+        "@moq/lite": "workspace:^",
+        "@moq/signals": "workspace:^",
         "async-mutex": "^0.5.0",
         "comlink": "^4.4.2",
         "zod": "^4.1.5",
@@ -102,12 +101,12 @@
         "vitest": "^3.2.4",
       },
     },
-    "moq/js/moq": {
-      "name": "@kixelated/moq",
-      "version": "0.9.3",
+    "moq/js/lite": {
+      "name": "@moq/lite",
+      "version": "0.1.0",
       "dependencies": {
-        "@kixelated/signals": "workspace:*",
-        "@kixelated/web-transport-ws": "^0.1.2",
+        "@moq/signals": "workspace:*",
+        "@moq/web-transport-ws": "^0.1.2",
         "async-mutex": "^0.5.0",
       },
       "devDependencies": {
@@ -125,23 +124,9 @@
         "zod": "^4.1.0",
       },
     },
-    "moq/js/moq-token": {
-      "name": "@kixelated/moq-token",
-      "version": "0.1.0",
-      "dependencies": {
-        "@hexagon/base64": "^2.0.4",
-        "jose": "^6.1.0",
-        "zod": "^4.1.5",
-      },
-      "devDependencies": {
-        "@biomejs/biome": "^2.2.2",
-        "@types/node": "^24.3.1",
-        "typescript": "^5.9.2",
-      },
-    },
     "moq/js/signals": {
-      "name": "@kixelated/signals",
-      "version": "0.8.1",
+      "name": "@moq/signals",
+      "version": "0.1.0",
       "dependencies": {
         "dequal": "^2.0.3",
       },
@@ -161,6 +146,20 @@
         "react",
         "solid-js",
       ],
+    },
+    "moq/js/token": {
+      "name": "@moq/token",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hexagon/base64": "^2.0.4",
+        "jose": "^6.1.0",
+        "zod": "^4.1.5",
+      },
+      "devDependencies": {
+        "@biomejs/biome": "^2.2.2",
+        "@types/node": "^24.3.1",
+        "typescript": "^5.9.2",
+      },
     },
   },
   "packages": {
@@ -394,21 +393,21 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.9", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.0.3", "@jridgewell/sourcemap-codec": "^1.4.10" } }, "sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ=="],
 
-    "@kixelated/hang": ["@kixelated/hang@workspace:moq/js/hang"],
-
     "@kixelated/libavjs-webcodecs-polyfill": ["@kixelated/libavjs-webcodecs-polyfill@0.5.5", "", { "dependencies": { "@libav.js/types": "^6.7.7", "@ungap/global-this": "^0.4.4" } }, "sha512-Q1zgnTMMQ2F7IE9ylx3C1XzVbg5vYN18jiDINO5U3kNPBOHdYuUlJsMhtBoqr1M6ocLtoiqdHmLs7tHFgrw5KA=="],
-
-    "@kixelated/moq": ["@kixelated/moq@workspace:moq/js/moq"],
-
-    "@kixelated/moq-token": ["@kixelated/moq-token@workspace:moq/js/moq-token"],
-
-    "@kixelated/signals": ["@kixelated/signals@workspace:moq/js/signals"],
-
-    "@kixelated/web-transport-ws": ["@kixelated/web-transport-ws@0.1.2", "", {}, "sha512-rRUQuKxMgZ9LCqsdrrIJuYR59RRcUZWWBDAWHHPKHT506xQ4vkscoVCm55SM5hoEqNCRke8o7+75oVTTiFxM+Q=="],
 
     "@libav.js/types": ["@libav.js/types@6.8.8", "", {}, "sha512-Lbik/0Q3x2R8cI7mOtRgt+nUWLqGXh7UinMndmpdXSDY4YEjYyVUDsq6fxkuriL78+LCYx8frZIN1r+oDsvYCQ=="],
 
     "@libav.js/variant-opus-af": ["@libav.js/variant-opus-af@6.8.8", "", {}, "sha512-8KBQyA8n5goN7lyctOaPxpcx7dapOgqKh8dWW/NAcl87AgM/WoUGSex3fFc46oCtTHYrUKEm1OmZUrtkt3Q56A=="],
+
+    "@moq/hang": ["@moq/hang@workspace:moq/js/hang"],
+
+    "@moq/lite": ["@moq/lite@workspace:moq/js/lite"],
+
+    "@moq/signals": ["@moq/signals@workspace:moq/js/signals"],
+
+    "@moq/token": ["@moq/token@workspace:moq/js/token"],
+
+    "@moq/web-transport-ws": ["@moq/web-transport-ws@0.1.2", "", {}, "sha512-mYha+AkLNPT3uOGnTA5YWjpxc9LO/yriFSoWzKkR0zN3UMZb9RXbsD8Gbhg1pJZod6QD4tevHoOWTBADYN7yAQ=="],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 
@@ -1460,9 +1459,9 @@
 
     "@jridgewell/source-map/@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@kixelated/hang/@typescript/lib-dom": ["@types/web@0.0.241", "", {}, "sha512-aHz73musjS4z8Sm0wLaEj4lOaRxhKZRD4XerKL4rxNhhqmvthKkYzS0kHLEVsjOFRN2zo3gQAlyf0EKL1QYYQg=="],
+    "@moq/hang/@typescript/lib-dom": ["@types/web@0.0.241", "", {}, "sha512-aHz73musjS4z8Sm0wLaEj4lOaRxhKZRD4XerKL4rxNhhqmvthKkYzS0kHLEVsjOFRN2zo3gQAlyf0EKL1QYYQg=="],
 
-    "@kixelated/moq/@typescript/lib-dom": ["@types/web@0.0.241", "", {}, "sha512-aHz73musjS4z8Sm0wLaEj4lOaRxhKZRD4XerKL4rxNhhqmvthKkYzS0kHLEVsjOFRN2zo3gQAlyf0EKL1QYYQg=="],
+    "@moq/lite/@typescript/lib-dom": ["@types/web@0.0.241", "", {}, "sha512-aHz73musjS4z8Sm0wLaEj4lOaRxhKZRD4XerKL4rxNhhqmvthKkYzS0kHLEVsjOFRN2zo3gQAlyf0EKL1QYYQg=="],
 
     "@poppinss/dumper/supports-color": ["supports-color@10.2.2", "", {}, "sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g=="],
 

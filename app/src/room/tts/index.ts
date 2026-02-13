@@ -1,4 +1,4 @@
-import { Effect, Signal } from "@kixelated/signals";
+import { Effect, Signal } from "@moq/signals";
 import * as Comlink from "comlink";
 import Settings from "../../settings";
 

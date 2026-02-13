@@ -1,6 +1,6 @@
-import type * as Moq from "@kixelated/moq";
-import { Path } from "@kixelated/moq";
-import { Effect, Getter, Signal } from "@kixelated/signals";
+import type * as Moq from "@moq/lite";
+import { Path } from "@moq/lite";
+import { Effect, Getter, Signal } from "@moq/signals";
 import { Member } from "./member";
 
 export interface RoomProps {

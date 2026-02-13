@@ -1,6 +1,6 @@
-import { Publish, Watch } from "@kixelated/hang";
-import * as Moq from "@kixelated/moq";
-import { Effect, Signal } from "@kixelated/signals";
+import { Publish, Watch } from "@moq/hang";
+import * as Moq from "@moq/lite";
+import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
 import { Broadcast } from "./broadcast";
 import type { Canvas } from "./canvas";

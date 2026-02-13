@@ -1,6 +1,6 @@
-import { Publish } from "@kixelated/hang";
-import type * as Moq from "@kixelated/moq";
-import { Effect, Signal } from "@kixelated/signals";
+import { Publish } from "@moq/hang";
+import type * as Moq from "@moq/lite";
+import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
 import * as Tauri from "../tauri";
 

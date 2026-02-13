@@ -1,6 +1,6 @@
-import { Publish } from "@kixelated/hang";
-import { Effect } from "@kixelated/signals";
-import solid from "@kixelated/signals/solid";
+import { Publish } from "@moq/hang";
+import { Effect } from "@moq/signals";
+import solid from "@moq/signals/solid";
 import { createSignal, JSX, onCleanup, Show } from "solid-js";
 import * as Api from "../api";
 import { Camera, Microphone } from "../controls";

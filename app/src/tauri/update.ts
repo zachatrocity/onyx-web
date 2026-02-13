@@ -1,4 +1,4 @@
-import { Signal } from "@kixelated/signals";
+import { Signal } from "@moq/signals";
 import * as Process from "@tauri-apps/plugin-process";
 import * as Updater from "@tauri-apps/plugin-updater";
 

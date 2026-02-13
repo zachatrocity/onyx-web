@@ -1,5 +1,5 @@
-import { Publish, Watch } from "@kixelated/hang";
-import { Effect, Signal } from "@kixelated/signals";
+import { Publish, Watch } from "@moq/hang";
+import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
 import * as Meme from "./meme";

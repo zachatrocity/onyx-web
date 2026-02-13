@@ -5,7 +5,7 @@ import { hc } from "hono/client";
 export type * from "@hang/api";
 export * from "@hang/api/client";
 
-import { Effect, Signal } from "@kixelated/signals";
+import { Effect, Signal } from "@moq/signals";
 import Settings from "./settings";
 import * as Tauri from "./tauri";
 

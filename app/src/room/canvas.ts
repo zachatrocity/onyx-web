@@ -1,4 +1,4 @@
-import { Effect, Signal } from "@kixelated/signals";
+import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
 import { Vector } from "./geometry";
 import { BackgroundRenderer } from "./gl/background";

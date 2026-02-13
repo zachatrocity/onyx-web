@@ -1,5 +1,5 @@
-import * as Moq from "@kixelated/moq";
-import solid from "@kixelated/signals/solid";
+import * as Moq from "@moq/lite";
+import solid from "@moq/signals/solid";
 import { createEffect, For, onCleanup, Setter, Show } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";
 import * as Preview from "./room/preview";

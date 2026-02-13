@@ -1,7 +1,7 @@
-import * as Hang from "@kixelated/hang";
-import type * as Moq from "@kixelated/moq";
-import * as Zod from "@kixelated/moq/zod";
-import { Effect, Signal } from "@kixelated/signals";
+import * as Hang from "@moq/hang";
+import type * as Moq from "@moq/lite";
+import * as Zod from "@moq/lite/zod";
+import { Effect, Signal } from "@moq/signals";
 
 export type MemberProps = {
 	enabled?: boolean | Signal<boolean>;

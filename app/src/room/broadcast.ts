@@ -1,5 +1,5 @@
-import { Publish, Watch } from "@kixelated/hang";
-import { Effect, Signal } from "@kixelated/signals";
+import { Publish, Watch } from "@moq/hang";
+import { Effect, Signal } from "@moq/signals";
 import { Audio } from "./audio";
 import { Canvas } from "./canvas";
 import { Captions } from "./captions";

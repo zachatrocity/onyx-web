@@ -1,5 +1,5 @@
-import { Effect, Signal } from "@kixelated/signals";
-import * as DOM from "@kixelated/signals/dom";
+import { Effect, Signal } from "@moq/signals";
+import * as DOM from "@moq/signals/dom";
 import type { Broadcast } from "./broadcast";
 import type { Canvas } from "./canvas";
 import { Bounds, Vector } from "./geometry";

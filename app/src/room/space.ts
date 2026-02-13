@@ -1,5 +1,5 @@
-import { Publish, Watch } from "@kixelated/hang";
-import { Effect, Signal } from "@kixelated/signals";
+import { Publish, Watch } from "@moq/hang";
+import { Effect, Signal } from "@moq/signals";
 import { Broadcast, BroadcastSource } from "./broadcast";
 import type { Canvas } from "./canvas";
 import { Vector } from "./geometry";

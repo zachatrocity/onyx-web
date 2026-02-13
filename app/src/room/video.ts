@@ -1,4 +1,4 @@
-import { Effect, Signal } from "@kixelated/signals";
+import { Effect, Signal } from "@moq/signals";
 import * as Api from "../api";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";

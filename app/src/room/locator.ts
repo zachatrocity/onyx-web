@@ -1,6 +1,6 @@
-import type { Publish } from "@kixelated/hang";
-import { Effect, Signal } from "@kixelated/signals";
-import * as DOM from "@kixelated/signals/dom";
+import type { Publish } from "@moq/hang";
+import { Effect, Signal } from "@moq/signals";
+import * as DOM from "@moq/signals/dom";
 import type { Broadcast } from "./broadcast";
 import { Bounds, Vector } from "./geometry";
 

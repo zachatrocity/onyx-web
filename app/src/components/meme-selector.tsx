@@ -1,5 +1,5 @@
-import type { Publish } from "@kixelated/hang";
-import solid from "@kixelated/signals/solid";
+import type { Publish } from "@moq/hang";
+import solid from "@moq/signals/solid";
 import { createEffect, createSignal, For, onCleanup, onMount, type Setter, Show } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";
 import * as Meme from "../room/meme";

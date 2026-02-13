@@ -1,5 +1,5 @@
 //import "tauri-plugin-web-transport";
-import "@kixelated/hang/support/element";
+import "@moq/hang/support/element";
 
 import * as Tauri from "./tauri";
 
@@ -8,7 +8,7 @@ if (Tauri.DESKTOP) {
 	import("./tauri/update");
 }
 
-import solid from "@kixelated/signals/solid";
+import solid from "@moq/signals/solid";
 import { Route, Router, useLocation } from "@solidjs/router";
 import { onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";

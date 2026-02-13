@@ -5,9 +5,9 @@
 	"workspaces": [
 		"app",
 		"api",
-		"moq/js/moq",
+		"moq/js/lite",
 		"moq/js/hang",
-		"moq/js/moq-token",
+		"moq/js/token",
 		"moq/js/signals"
 	],
 	"scripts": {
