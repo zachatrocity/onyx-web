@@ -1,4 +1,4 @@
-import { Publish } from "@moq/hang";
+import * as Publish from "@moq/publish";
 import { Effect } from "@moq/signals";
 import * as DOM from "@moq/signals/dom";
 import Settings from "../settings";

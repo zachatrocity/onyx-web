@@ -1,4 +1,4 @@
-import type { Publish } from "@moq/hang";
+import type * as Publish from "@moq/publish";
 import solid from "@moq/signals/solid";
 import {
 	type Accessor,

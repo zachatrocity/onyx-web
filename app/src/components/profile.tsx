@@ -1,4 +1,4 @@
-import { Publish } from "@moq/hang";
+import * as Publish from "@moq/publish";
 import { Effect } from "@moq/signals";
 import solid from "@moq/signals/solid";
 import { createSignal, JSX, onCleanup, Show } from "solid-js";

@@ -1,4 +1,4 @@
-import type { Publish } from "@moq/hang";
+import type * as Publish from "@moq/publish";
 import { Effect, Signal } from "@moq/signals";
 import * as DOM from "@moq/signals/dom";
 import type { Broadcast } from "./broadcast";

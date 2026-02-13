@@ -1,4 +1,4 @@
-import { Publish } from "@moq/hang";
+import * as Publish from "@moq/publish";
 import { Effect, Signal } from "@moq/signals";
 import { Broadcast, BroadcastSource } from "./broadcast";
 import type { Canvas } from "./canvas";

@@ -7,6 +7,9 @@
 		"api",
 		"moq/js/lite",
 		"moq/js/hang",
+		"moq/js/publish",
+		"moq/js/watch",
+		"moq/js/ui-core",
 		"moq/js/token",
 		"moq/js/signals"
 	],

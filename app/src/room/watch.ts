@@ -1,4 +1,5 @@
-import { Catalog, Watch } from "@moq/hang";
+import { Catalog } from "@moq/hang";
+import * as Watch from "@moq/watch";
 import type * as Moq from "@moq/lite";
 import { Effect, type Getter, Signal } from "@moq/signals";
 

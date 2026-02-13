@@ -1,4 +1,4 @@
-import { Publish } from "@moq/hang";
+import * as Publish from "@moq/publish";
 import * as Moq from "@moq/lite";
 import { Effect, Signal } from "@moq/signals";
 import { Broadcast } from "./broadcast";
