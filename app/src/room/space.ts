@@ -1,4 +1,4 @@
-import { Publish, Watch } from "@moq/hang";
+import { Publish } from "@moq/hang";
 import { Effect, Signal } from "@moq/signals";
 import { Broadcast, BroadcastSource } from "./broadcast";
 import type { Canvas } from "./canvas";
@@ -7,6 +7,7 @@ import { AudioRenderer } from "./gl/audio";
 import { BorderRenderer } from "./gl/border";
 import { BroadcastRenderer } from "./gl/broadcast";
 import type { Sound } from "./sound";
+import { WatchBroadcast } from "./watch";
 
 export type SpaceProps = {
 	profile?: boolean;
@@ -752,7 +753,7 @@ export class Space {
 			return;
 		}
 
-		if (broadcast.source instanceof Watch.Broadcast) {
+		if (broadcast.source instanceof WatchBroadcast) {
 			const handle = broadcast.source.location.window.handle.peek();
 			if (!handle) return;
 

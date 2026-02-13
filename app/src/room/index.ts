@@ -1,13 +1,13 @@
-import { Publish, Watch } from "@moq/hang";
+import { Publish } from "@moq/hang";
 import * as Moq from "@moq/lite";
 import { Effect, Signal } from "@moq/signals";
-import Settings from "../settings";
 import { Broadcast } from "./broadcast";
 import type { Canvas } from "./canvas";
 import { Local } from "./local";
 import { Locator } from "./locator";
 import { Sound } from "./sound";
 import { Space } from "./space";
+import { WatchBroadcast } from "./watch";
 
 export interface RoomProps {
 	connection: Moq.Connection.Reload;
@@ -138,33 +138,22 @@ export class Room {
 	}
 
 	#addRemote(path: Moq.Path.Valid) {
-		const watch = new Watch.Broadcast({
+		const watch = new WatchBroadcast({
 			connection: this.connection.established,
 			enabled: true,
 			path,
 			reload: false,
-			// Download the location of the broadcaster.
 			location: {
 				window: { enabled: true },
 				peers: { enabled: true },
 			},
 			chat: {
-				// Download the chat of the broadcaster.
 				message: { enabled: true },
-				// And download the typing indicator.
 				typing: { enabled: true },
 			},
-			// Download the preview track to receive high-level information about the broadcaster.
 			preview: { enabled: true },
 			audio: {
 				enabled: this.space.sound.enabled,
-				// Download the speaking indicator.
-				speaking: { enabled: true },
-				captions: { enabled: Settings.captions.render },
-			},
-			// Download the user information.
-			user: {
-				enabled: true,
 			},
 			video: {
 				enabled: this.space.canvas.visible,

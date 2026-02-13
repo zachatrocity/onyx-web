@@ -1,4 +1,4 @@
-import { Publish, Watch } from "@moq/hang";
+import { Publish } from "@moq/hang";
 import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
@@ -11,8 +11,6 @@ const GAIN_MIN = 0.001;
 export type AudioProps = {
 	pan?: number;
 };
-
-export type AudioSource = Watch.Audio.Source | Publish.Audio.Encoder;
 
 export class Audio {
 	broadcast: Broadcast;

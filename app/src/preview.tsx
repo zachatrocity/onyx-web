@@ -40,27 +40,11 @@ function PreviewMemberCompact(props: { member: Preview.Member }): JSX.Element {
 		<Show when={info()}>
 			{(info) => (
 				<div
-					class="relative flex items-center gap-2 p-2 rounded-lg flex-1 hover:scale-[1.05] transition-all duration-500"
+					class="relative flex items-center gap-2 p-2 rounded-lg flex-1 hover:scale-[1.05] transition-all duration-500 bg-gray-800/30"
 					style={{ "flex-basis": "calc(50% - 0.25rem)", "min-width": "140px" }}
-					classList={{
-						"ring-1 ring-green-400/50 bg-green-500/10": info().speaking,
-						"bg-gray-800/30": !info().speaking,
-					}}
 				>
 					<div class="relative">
 						<img src={info().avatar} alt={info().name} class="w-8 h-8 rounded-lg object-cover" />
-						<div
-							class="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-green-300 rounded-full border border-gray-900 shadow-lg flex items-center justify-center transition-all duration-300"
-							classList={{
-								"opacity-100 scale-100": info().speaking,
-								"opacity-0 scale-0": !info().speaking,
-							}}
-						>
-							<span class="icon-[mdi--volume-high] w-2.5 h-2.5 text-gray-900" />
-							<Show when={info().speaking}>
-								<div class="absolute w-full h-full bg-green-400 rounded-full animate-ping opacity-75" />
-							</Show>
-						</div>
 					</div>
 					<div class="flex-1 min-w-0">
 						<div class="text-xs font-medium text-white truncate">{info().name}</div>
@@ -79,9 +63,6 @@ function PreviewMemberCompact(props: { member: Preview.Member }): JSX.Element {
 										"icon-[mdi--chat]": !info().typing,
 									}}
 								/>
-							</Show>
-							<Show when={info().speaking}>
-								<span class="icon-[mdi--volume-high] w-3 h-3 text-green-300 animate-pulse" />
 							</Show>
 						</div>
 					</div>
@@ -146,14 +127,7 @@ function PreviewMember(props: { member: Preview.Member }): JSX.Element {
 			}
 		>
 			{(info) => (
-				<div
-					class="group relative flex items-center gap-4 p-4 m-1 rounded-xl hover:scale-[1.05] transition-all duration-500"
-					classList={{
-						"ring-2 ring-green-400/50 bg-green-500/10": info().speaking,
-						"bg-gradient-to-r from-gray-800/50 to-gray-800/30 hover:from-gray-700/50 hover:to-gray-700/30":
-							!info().speaking,
-					}}
-				>
+				<div class="group relative flex items-center gap-4 p-4 m-1 rounded-xl hover:scale-[1.05] transition-all duration-500 bg-gradient-to-r from-gray-800/50 to-gray-800/30 hover:from-gray-700/50 hover:to-gray-700/30">
 					<div class="relative z-10">
 						<div
 							class="w-12 h-12 rounded-xl overflow-hidden bg-gray-700 transition-all duration-300 shadow-lg"
@@ -168,18 +142,6 @@ function PreviewMember(props: { member: Preview.Member }): JSX.Element {
 									alt={info().name}
 									class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
 								/>
-							</Show>
-						</div>
-						<div
-							class="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-green-300 rounded-full border-2 border-gray-900 shadow-lg flex items-center justify-center transition-all duration-300"
-							classList={{
-								"opacity-100 scale-100": info().speaking,
-								"opacity-0 scale-0": !info().speaking,
-							}}
-						>
-							<span class="icon-[mdi--volume-high] text-gray-900" />
-							<Show when={info().speaking}>
-								<div class="absolute w-full h-full bg-green-400 rounded-full animate-ping opacity-75" />
 							</Show>
 						</div>
 					</div>
@@ -224,14 +186,6 @@ function PreviewMember(props: { member: Preview.Member }): JSX.Element {
 									}}
 								/>
 							</div>
-							<Show when={info().speaking}>
-								<div
-									class="relative transition-all duration-300 ease-in-out animate-pulse"
-									title="Speaking"
-								>
-									<span class="icon-[mdi--volume-high] w-4 h-4 text-green-300" />
-								</div>
-							</Show>
 							<Show when={info().screen}>
 								<div class="relative transition-all duration-300 ease-in-out" title="Screen sharing">
 									<span class="icon-[mdi--monitor] w-4 h-4 text-yellow-400" />

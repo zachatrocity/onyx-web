@@ -1,10 +1,11 @@
-import { Publish, Watch } from "@moq/hang";
+import { Publish } from "@moq/hang";
 import { Effect } from "@moq/signals";
 import * as DOM from "@moq/signals/dom";
 import Settings from "../settings";
 import type { Broadcast } from "./broadcast";
 import type { Canvas } from "./canvas";
 import { Bounds, Vector } from "./geometry";
+import { WatchBroadcast } from "./watch";
 
 export class Debug {
 	canvas: Canvas;
@@ -67,7 +68,7 @@ export class Debug {
 				});
 
 				// Highlight active rendition
-				if (this.broadcast.source instanceof Watch.Broadcast) {
+				if (this.broadcast.source instanceof WatchBroadcast) {
 					const active = effect.get(this.broadcast.source.video.active);
 					if (active === name) {
 						box.className += " ring-2 ring-green-500";
@@ -123,7 +124,7 @@ export class Debug {
 				});
 
 				// Highlight active rendition
-				if (this.broadcast.source instanceof Watch.Broadcast) {
+				if (this.broadcast.source instanceof WatchBroadcast) {
 					const active = effect.get(this.broadcast.source.audio.active);
 					if (active === name) {
 						box.className += " ring-2 ring-green-500";

@@ -41,25 +41,13 @@ export class FakeBroadcast {
 
 	audio = {
 		root: new Signal<AudioNode | undefined>(undefined),
-		captions: {
-			enabled: new Signal(true),
-			text: new Signal<string | undefined>(undefined),
-		},
-		speaking: {
-			enabled: new Signal(false),
-			active: new Signal<boolean | undefined>(undefined),
-		},
 		catalog: new Signal<Catalog.Audio | undefined>(undefined),
 	};
 
 	video = {
 		frame: new Signal<VideoFrame | undefined>(undefined),
 		display: new Signal<{ width: number; height: number } | undefined>(undefined),
-		detection: {
-			enabled: new Signal(false),
-			objects: new Signal<Catalog.DetectionObjects | undefined>(undefined),
-		},
-		flip: new Signal<boolean | undefined>(undefined),
+		flip: new Signal<boolean>(false),
 		catalog: new Signal<Catalog.Video | undefined>(undefined),
 	};
 
@@ -81,13 +69,6 @@ export class FakeBroadcast {
 			if (!message) return;
 
 			effect.timer(() => this.chat.message.latest.set(undefined), 10000);
-		});
-
-		this.signals.effect((effect) => {
-			const caption = effect.get(this.audio.captions.text);
-			if (!caption) return;
-
-			effect.timer(() => this.audio.captions.text.set(undefined), 10000);
 		});
 
 		// A helper to automatically unset the typing indicator when the message is sent.

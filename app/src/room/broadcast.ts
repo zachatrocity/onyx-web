@@ -1,8 +1,7 @@
-import { Publish, Watch } from "@moq/hang";
+import { Publish } from "@moq/hang";
 import { Effect, Signal } from "@moq/signals";
 import { Audio } from "./audio";
 import { Canvas } from "./canvas";
-import { Captions } from "./captions";
 import { Chat } from "./chat";
 import { Debug } from "./debug";
 import { FakeBroadcast } from "./fake";
@@ -12,8 +11,9 @@ import * as Meme from "./meme";
 import { Name } from "./name";
 import { Sound } from "./sound";
 import { Video } from "./video";
+import { WatchBroadcast } from "./watch";
 
-export type BroadcastSource = Watch.Broadcast | Publish.Broadcast | FakeBroadcast;
+export type BroadcastSource = WatchBroadcast | Publish.Broadcast | FakeBroadcast;
 
 export type ChatMessage = {
 	audio?: HTMLAudioElement;
@@ -45,7 +45,6 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 	audio: Audio;
 	video: Video;
 	chat: Chat;
-	captions: Captions;
 	name: Name;
 	debug: Debug;
 
@@ -119,7 +118,6 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		this.video = new Video(this);
 		this.audio = new Audio(this, props.sound);
 		this.chat = new Chat(this, props.canvas);
-		this.captions = new Captions(this, props.canvas);
 		this.name = new Name(this, props.canvas);
 		this.debug = new Debug(this, props.canvas);
 
@@ -205,7 +203,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 
 	// Decides the simulcast size to use based on the number of pixels.
 	#runTarget(effect: Effect) {
-		if (!(this.source instanceof Watch.Broadcast)) return;
+		if (!(this.source instanceof WatchBroadcast)) return;
 
 		const display = effect.get(this.source.video.display);
 		if (!display) return;
@@ -333,7 +331,7 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 
 	// Returns true if the broadcaster is locked to a position.
 	locked(): boolean {
-		if (this.source instanceof Watch.Broadcast) {
+		if (this.source instanceof WatchBroadcast) {
 			return !this.source.location.window.handle.peek();
 		}
 
@@ -351,7 +349,6 @@ export class Broadcast<T extends BroadcastSource = BroadcastSource> {
 		this.audio.close();
 		this.video.close();
 		this.chat.close();
-		this.captions.close();
 		this.name.close();
 		this.debug.close();
 		this.mesh.close();

@@ -676,7 +676,6 @@ function Screen(props: { local: Local; room: Room }): JSX.Element {
 // Renders a volume meter in the background of an element.
 export function Visualize(props: { audio: Publish.Audio.Encoder }): JSX.Element {
 	const [power, setPower] = createSignal<number | undefined>(undefined);
-	const [speaking, setSpeaking] = createSignal(false);
 
 	const top = createMemo(() => {
 		return `${Math.round(Math.max(0, 100 - (power() ?? 0) * 100))}%`;
@@ -688,13 +687,6 @@ export function Visualize(props: { audio: Publish.Audio.Encoder }): JSX.Element 
 		const hue = 180 + p * 120;
 		const alpha = 0.3 + p * 0.4;
 		return `hsla(${hue}, 80%, 40%, ${alpha})`;
-	});
-
-	const speakingColor = createMemo(() => {
-		const p = power();
-		if (!p) return "transparent";
-		const hue = 180 + p * 120;
-		return `hsla(${hue}, 80%, 40%, 1)`;
 	});
 
 	const root = solid(props.audio.root);
@@ -728,8 +720,6 @@ export function Visualize(props: { audio: Publish.Audio.Encoder }): JSX.Element 
 
 			setPower(smoothed);
 			animation = requestAnimationFrame(tick);
-
-			setSpeaking(props.audio.speaking.active.peek() ?? false);
 		};
 
 		animation = requestAnimationFrame(tick);
@@ -742,8 +732,6 @@ export function Visualize(props: { audio: Publish.Audio.Encoder }): JSX.Element 
 			class="absolute bottom-0 left-0 w-full rounded"
 			style={{
 				top: top(),
-				"border-top-width": speaking() ? "2px" : "0px",
-				"border-top-color": speakingColor(),
 				"background-color": color(),
 			}}
 		/>

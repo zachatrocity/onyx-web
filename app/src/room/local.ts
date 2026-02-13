@@ -2,7 +2,6 @@ import { Publish } from "@moq/hang";
 import type * as Moq from "@moq/lite";
 import { Effect, Signal } from "@moq/signals";
 import Settings from "../settings";
-import * as Tauri from "../tauri";
 
 export interface LocalProps {
 	connection?: Signal<Moq.Connection.Established | undefined> | Moq.Connection.Established;
@@ -94,10 +93,6 @@ export class Local {
 				enabled: Settings.microphone.enabled,
 				volume: Settings.microphone.gain,
 				source: this.microphone.source,
-				speaking: {
-					// TODO Figure out an efficient way to run models on mobile.
-					enabled: !Tauri.MOBILE ? Settings.microphone.enabled : undefined,
-				},
 			},
 			location: {
 				window: {
@@ -121,7 +116,6 @@ export class Local {
 				enabled: true,
 				info: {
 					chat: false,
-					speaking: false,
 					typing: false,
 					screen: false,
 				},
@@ -218,23 +212,6 @@ export class Local {
 			effect.timer(() => {
 				this.camera.chat.message.latest.set("");
 			}, 10000);
-		});
-
-		// Monitor VAD signal with some debouncing
-		this.camera.signals.effect((effect) => {
-			const speaking = effect.get(this.camera.audio.speaking.active);
-
-			// Only update the preview if we've been speaking for at least 200ms, or not for 1s.
-			// NOTE: The timer will get cleared when the effect is run again.
-			effect.timer(
-				() => {
-					this.camera.preview.info.update((prev) => ({
-						...prev,
-						speaking,
-					}));
-				},
-				speaking ? 1000 : 100,
-			);
 		});
 
 		this.camera.signals.effect((effect) => {

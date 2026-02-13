@@ -212,8 +212,6 @@ export function About(): JSX.Element {
 		() => {},
 		() => one.chat.typing.active.set(true),
 		() => one.chat.message.latest.set("[start a hang](https://hang.live/home)"),
-		() => two.audio.captions.text.set("like automatic captions"),
-		() => one.audio.captions.text.set("(laughing)"),
 		() => two.chat.typing.active.set(true),
 		() => two.chat.message.latest.set("bye!"),
 		() => room.remove("2"),
