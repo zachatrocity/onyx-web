@@ -1,13 +1,13 @@
 import { Catalog } from "@moq/hang";
-import * as Watch from "@moq/watch";
 import type * as Moq from "@moq/lite";
 import { Effect, type Getter, Signal } from "@moq/signals";
+import * as Watch from "@moq/watch";
 
 // Props for creating a WatchBroadcast
 export interface WatchBroadcastProps {
 	connection?: Moq.Connection.Established | Signal<Moq.Connection.Established | undefined>;
 	enabled?: boolean | Signal<boolean>;
-	path?: Moq.Path.Valid | Signal<Moq.Path.Valid | undefined>;
+	name?: Moq.Path.Valid | Signal<Moq.Path.Valid>;
 	reload?: boolean | Signal<boolean>;
 	location?: {
 		window?: { enabled?: boolean | Signal<boolean> };
@@ -89,7 +89,7 @@ export class WatchBroadcast {
 		this.#broadcast = new Watch.Broadcast({
 			connection: props?.connection,
 			enabled: props?.enabled,
-			path: props?.path,
+			name: props?.name,
 			reload: props?.reload,
 		});
 
