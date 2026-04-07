@@ -36,7 +36,7 @@ just fix
 ### MOQ Libraries — **Open Source**
 Published npm packages from [moq](https://github.com/moq-dev/moq):
 - **Packages**: `@moq/lite`, `@moq/hang`, `@moq/signals`, `@moq/publish`, `@moq/watch`, `@moq/token`
-- **Relay**: `moq-relay` binary provided via nix flake for local development (`dev/relay/`)
+- **Relay**: `moq-relay` binary provided via nix flake for local development (`dev/`)
 
 ### Frontend (`/app`) - **Closed Source**
 Hang-specific conferencing UI and application logic:
@@ -75,7 +75,7 @@ Hang-specific server and business logic:
 ### Working with Media over QUIC
 - MOQ libraries are installed from npm (`@moq/*` packages)
 - Hang-specific integration in `app/room/` folder
-- Local relay server config in `dev/relay/` (uses `moq-relay` from nix flake)
+- Local relay server config in `dev/` (uses `moq-relay` from nix flake)
 - Uses WebTransport and QUIC under the hood
 
 ## Code Style

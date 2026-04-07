@@ -1,15 +1,11 @@
 #!/usr/bin/env just --justfile
 
-# Using Just: https://github.com/casey/just?tab=readme-ov-file#installation
-
-# List all of the available commands.
-default:
-  just --list
+set fallback
 
 dev:
-	just ../dev/relay/auth-key
+	just ../dev/auth-key
 	bun wrangler d1 migrations apply DB --local
-	bun wrangler dev --var "RELAY_SECRET:$(cat ../dev/relay/root.jwk)" --var "RELAY_URL:http://${TAURI_DEV_HOST:-localhost}:4443"
+	bun wrangler dev --var "RELAY_SECRET:$(cat ../dev/root.jwk)" --var "RELAY_URL:http://${TAURI_DEV_HOST:-localhost}:4443"
 
 build:
 	bun run build

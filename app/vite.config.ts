@@ -46,15 +46,16 @@ export default defineConfig(() => {
 			}),
 			solid(),
 			tailwindcss(),
-			viteStaticCopy({
-				targets: [
-					// We copy the version files otherwise Vite yells at us importing JSON modules.
-					{
-						src: "src/version/*",
-						dest: "version",
-					},
-				],
-			}),
+			process.env.TAURI_ENV_PLATFORM &&
+				viteStaticCopy({
+					targets: [
+						// We copy the version files otherwise Vite yells at us importing JSON modules.
+						{
+							src: "src/version/*",
+							dest: "version",
+						},
+					],
+				}),
 			process.env.TAURI_ENV_PLATFORM && {
 				name: "delete-meme",
 				async writeBundle() {

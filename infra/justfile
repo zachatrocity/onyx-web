@@ -1,3 +1,7 @@
+#!/usr/bin/env just --justfile
+
+set fallback
+
 # Deploy moq-relay and moq-cert to all nodes
 [parallel]
 deploy-all: (deploy "use") (deploy "usw") (deploy "euc") (deploy "sea")

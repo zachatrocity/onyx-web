@@ -1,3 +1,5 @@
+#!/usr/bin/env just --justfile
+
 set fallback
 
 # Run a localhost root relay server with authentication.
