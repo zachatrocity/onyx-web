@@ -12,6 +12,7 @@ build:
 
 check:
 	bun exec biome check
+	bun test
 	bun tsc --noEmit
 	#bun exec madge --circular --extensions ts,tsx src
 
