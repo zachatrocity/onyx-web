@@ -68,10 +68,11 @@ the built Vite app with nginx on port `8080` and writes `/config.js` at startup
 from environment variables, so one published image can point at different API
 origins without rebuilding.
 
-Published image:
+Published images:
 
 ```sh
 ghcr.io/zachatrocity/onyx-web/web:main
+ghcr.io/zachatrocity/onyx-relay:latest
 ```
 
 Run it directly:
@@ -84,7 +85,7 @@ docker run --rm \
   ghcr.io/zachatrocity/onyx-web/web:main
 ```
 
-Recommended Compose shape:
+Recommended single-host Compose stack:
 
 ```yaml
 services:
@@ -96,12 +97,39 @@ services:
     environment:
       API_URL: "https://api.example.com"
       APP_URL: "https://onyx.example.com"
+
+  relay:
+    image: ghcr.io/zachatrocity/onyx-relay:latest
+    restart: unless-stopped
+    environment:
+      RUST_LOG: "info"
+    ports:
+      - "4443:4443/udp"
+      - "127.0.0.1:8081:8080/tcp"
+    volumes:
+      - "./certs:/certs:ro"
+      - "./keys:/keys:ro"
 ```
 
-Put this behind Caddy, Traefik, or Nginx for public TLS. The web container is
-stateless; durable data still belongs to the API, object storage, and MOQ relay.
-Today the API remains Cloudflare Workers-shaped, so a fully self-hosted install
-still needs the API/storage/relay adapters described in the architecture work.
+Put the web container behind Caddy, Traefik, or Nginx for public HTTPS. The relay
+serves QUIC/WebTransport over UDP, so expose `4443/udp` directly or map host
+`443/udp` to container `4443/udp` when that is your public relay endpoint. Keep
+the relay HTTP health/debug endpoint bound to localhost unless you intentionally
+expose it; the example maps it to `127.0.0.1:8081`.
+
+The relay image expects trusted TLS files and JWT verification keys:
+
+```text
+certs/fullchain.pem
+certs/privkey.pem
+keys/{kid}.jwk
+```
+
+The web container is stateless. The relay stores no durable media by default,
+but its config inputs matter: back up the TLS material and public verification
+keys, and keep the private signing keys in the API/control plane. Today the API
+remains Cloudflare Workers-shaped, so set the API's relay URL to the public relay
+origin and make sure it issues tokens that the mounted relay keys can verify.
 
 The `Publish web image` workflow builds and pushes the image to GHCR on `main`,
 version tags matching `v*`, and manual dispatches.
