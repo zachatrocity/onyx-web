@@ -5,11 +5,12 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
 import { z } from "zod";
+import type { RuntimeEnv } from "./config";
 import Context from "./context";
 
 export function app() {
 	return new Hono<{
-		Bindings: Env;
+		Bindings: RuntimeEnv;
 	}>()
 		.use(withContext)
 		.use(withCors);
@@ -26,7 +27,7 @@ export function router() {
 
 // Instead of exposing env directly, we wrap it in a context object for easier access
 export const withContext = createMiddleware<{
-	Bindings: Env;
+	Bindings: RuntimeEnv;
 	Variables: {
 		ctx: Context;
 	};
@@ -37,7 +38,7 @@ export const withContext = createMiddleware<{
 });
 
 export const withCors = createMiddleware<{
-	Bindings: Env;
+	Bindings: RuntimeEnv;
 }>(async (c, next) => {
 	const corsMiddleware = cors({
 		origin: [c.env.APP_URL, "tauri://localhost", "http://tauri.localhost"],

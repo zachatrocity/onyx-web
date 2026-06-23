@@ -1,4 +1,7 @@
+import { and, desc, eq } from "drizzle-orm";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
+import * as Account from "./account";
 import * as Auth from "./auth";
 import * as Room from "./room";
 import * as rpc from "./rpc";
@@ -7,6 +10,18 @@ export interface Info {
 	room: string;
 	created_at: number;
 }
+
+export const table = sqliteTable(
+	"favorites",
+	{
+		accountId: text("account_id")
+			.notNull()
+			.references(() => Account.table.id, { onDelete: "cascade" }),
+		room: text("room").notNull(),
+		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	},
+	(table) => [primaryKey({ columns: [table.accountId, table.room] })],
+);
 
 export const router = rpc
 	.router()
@@ -17,10 +32,7 @@ export const router = rpc
 		const room = c.req.valid("param").room;
 
 		try {
-			await ctx.db.$client
-				.prepare("INSERT INTO favorites (account_id, room) VALUES (?, ?)")
-				.bind(account_id, room)
-				.run();
+			await ctx.db.insert(table).values({ accountId: account_id, room, createdAt: new Date() });
 			return c.json({ success: true });
 		} catch (error) {
 			// If it's a unique constraint error, that's fine - already favorited
@@ -36,10 +48,7 @@ export const router = rpc
 		const account_id = c.var.account_id;
 		const room = c.req.valid("param").room;
 
-		await ctx.db.$client
-			.prepare("DELETE FROM favorites WHERE account_id = ? AND room = ?")
-			.bind(account_id, room)
-			.run();
+		await ctx.db.delete(table).where(and(eq(table.accountId, account_id), eq(table.room, room)));
 		return c.json({ success: true });
 	})
 	// Get all favorited rooms
@@ -47,14 +56,15 @@ export const router = rpc
 		const ctx = c.var.ctx;
 		const account_id = c.var.account_id;
 
-		const result = await ctx.db.$client
-			.prepare("SELECT room, created_at FROM favorites WHERE account_id = ? ORDER BY created_at DESC")
-			.bind(account_id)
-			.all<{ room: string; created_at: number }>();
+		const result = await ctx.db
+			.select({ room: table.room, createdAt: table.createdAt })
+			.from(table)
+			.where(eq(table.accountId, account_id))
+			.orderBy(desc(table.createdAt));
 
-		const favorites: Info[] = result.results.map((row) => ({
+		const favorites: Info[] = result.map((row: { room: string; createdAt: Date }) => ({
 			room: row.room,
-			created_at: row.created_at,
+			created_at: row.createdAt.getTime(),
 		}));
 
 		// Generate a token that allows subscribing to all favorited rooms
@@ -69,10 +79,11 @@ export const router = rpc
 		const account_id = c.var.account_id;
 		const room = c.req.valid("param").room;
 
-		const result = await ctx.db.$client
-			.prepare("SELECT 1 FROM favorites WHERE account_id = ? AND room = ? LIMIT 1")
-			.bind(account_id, room)
-			.first();
+		const result = await ctx.db
+			.select({ room: table.room })
+			.from(table)
+			.where(and(eq(table.accountId, account_id), eq(table.room, room)))
+			.limit(1);
 
-		return c.json({ is_favorite: result !== null });
+		return c.json({ is_favorite: result.length > 0 });
 	});

@@ -21,4 +21,4 @@ const app = rpc
 
 export type App = typeof app;
 
-export default app satisfies ExportedHandler<Env>;
+export default app;

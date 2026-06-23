@@ -1,12 +1,13 @@
 import * as Account from "./account";
 import * as Auth from "./auth";
+import type { RuntimeEnv } from "./config";
 import * as Database from "./database";
 import * as OAuth from "./oauth";
 import * as Room from "./room";
 import * as Storage from "./storage";
 
 export default class Context {
-	env: Env;
+	env: RuntimeEnv;
 	auth: Auth.Context;
 	db: Database.Context;
 	storage: Storage.Context;
@@ -14,7 +15,7 @@ export default class Context {
 	account: Account.Context;
 	room: Room.Context;
 
-	constructor(env: Env) {
+	constructor(env: RuntimeEnv) {
 		this.env = env;
 		this.auth = new Auth.Context(env);
 		this.db = Database.init(env);

@@ -3,6 +3,7 @@ import * as Uuid from "uuid";
 import { z } from "zod";
 import * as Auth from "./auth";
 import { isValidRoom, ROOM_NAME_ERROR } from "./client";
+import type { RuntimeEnv } from "./config";
 import * as rpc from "./rpc";
 
 export const nameSchema = z.string().check(z.minLength(1), z.maxLength(100)).refine(isValidRoom, ROOM_NAME_ERROR);
@@ -12,9 +13,9 @@ export type Name = z.infer<typeof nameSchema>;
 
 export class Context {
 	#key: Token.Key;
-	#env: Env;
+	#env: RuntimeEnv;
 
-	constructor(env: Env) {
+	constructor(env: RuntimeEnv) {
 		this.#key = Token.load(env.RELAY_SECRET);
 		this.#env = env;
 	}

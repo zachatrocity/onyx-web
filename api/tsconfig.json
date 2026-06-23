@@ -2,7 +2,7 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"outDir": "./dist",
-		"types": ["./worker-configuration.d.ts"]
+		"types": ["node", "./worker-configuration.d.ts"]
 	},
 	"include": ["src"],
 	"exclude": ["src/client"]

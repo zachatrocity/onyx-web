@@ -3,6 +3,7 @@ import * as JWT from "jose";
 import { z } from "zod";
 import { Account } from ".";
 import { accountIdSchema } from "./client";
+import type { RuntimeEnv } from "./config";
 import RootContext from "./context";
 
 // Use ZOD to validate the payload
@@ -17,7 +18,7 @@ export type Token = z.infer<typeof tokenSchema>;
 export class Context {
 	#secretKey: Uint8Array;
 
-	constructor(env: Env) {
+	constructor(env: RuntimeEnv) {
 		this.#secretKey = new TextEncoder().encode(env.AUTH_SECRET);
 	}
 
@@ -46,7 +47,7 @@ export class Context {
 }
 
 export const required = createMiddleware<{
-	Bindings: Env;
+	Bindings: RuntimeEnv;
 	Variables: {
 		account_id: Account.Id;
 		ctx: RootContext;
@@ -63,7 +64,7 @@ export const required = createMiddleware<{
 });
 
 export const optional = createMiddleware<{
-	Bindings: Env;
+	Bindings: RuntimeEnv;
 	Variables: {
 		account_id?: Account.Id;
 		ctx: RootContext;

@@ -4,6 +4,7 @@ import * as jose from "jose";
 import { z } from "zod";
 import * as Account from "./account";
 import { OauthState, oauthStateSchema, oauthProviders as providers } from "./client";
+import type { RuntimeEnv } from "./config";
 import * as Database from "./database";
 import * as rpc from "./rpc";
 import { unreachable } from "./util";
@@ -12,10 +13,10 @@ export type ProviderId = (typeof providers)[number];
 export const providerIdSchema = z.enum(providers);
 
 export class Context {
-	env: Env;
+	env: RuntimeEnv;
 	db: Database.Context;
 
-	constructor(env: Env, db: Database.Context) {
+	constructor(env: RuntimeEnv, db: Database.Context) {
 		this.env = env;
 		this.db = db;
 	}
@@ -37,11 +38,11 @@ export class Provider {
 	#tokenUrl: string;
 	#scopes: string;
 
-	env: Env;
+	env: RuntimeEnv;
 	db: Database.Context;
 	id: ProviderId;
 
-	constructor(env: Env, db: Database.Context, id: ProviderId) {
+	constructor(env: RuntimeEnv, db: Database.Context, id: ProviderId) {
 		this.env = env;
 		this.db = db;
 		this.id = id;
