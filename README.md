@@ -117,6 +117,10 @@ serves QUIC/WebTransport over UDP, so expose `4443/udp` directly or map host
 the relay HTTP health/debug endpoint bound to localhost unless you intentionally
 expose it; the example maps it to `127.0.0.1:8081`.
 
+The web image does not need a relay URL. The browser asks the API to join a
+room; the API signs the room token and returns the relay URL to use. Keep relay
+origin, namespace, and signing-key configuration on the API/control-plane side.
+
 The relay image expects trusted TLS files and JWT verification keys:
 
 ```text
