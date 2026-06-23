@@ -1,4 +1,5 @@
 import { Accessor, createEffect, createSignal, onCleanup, Show } from "solid-js";
+import { APP_URL } from "../config";
 
 export default function AnotherOne(props: { clicks: Accessor<number> }) {
 	// Duration breakpoints for the meme video (in seconds)
@@ -86,7 +87,7 @@ export default function AnotherOne(props: { clicks: Accessor<number> }) {
 		<Show when={show()}>
 			<div class="absolute -top-24 left-1/2 transform -translate-x-1/2 pointer-events-none z-50">
 				<video
-					src={new URL("/meme/another-one.webm", import.meta.env.VITE_APP_URL).toString()}
+					src={new URL("/meme/another-one.webm", APP_URL).toString()}
 					class="w-20 h-20 object-cover rounded-lg transition-opacity duration-500"
 					classList={{
 						"opacity-0": !visible(),

@@ -1,3 +1,5 @@
+import { APP_URL } from "../config";
+
 export type FilePath = {
 	path: string;
 	mime: string;
@@ -1275,7 +1277,7 @@ export function audio(name: AudioName): Audio {
 	const source = AUDIO[name];
 
 	return {
-		url: new URL(`/meme/${source.source}`, import.meta.env.VITE_APP_URL).toString(),
+		url: new URL(`/meme/${source.source}`, APP_URL).toString(),
 		emoji: source.emoji,
 	};
 }
@@ -1303,7 +1305,7 @@ export function video(name: VideoName): Video | undefined {
 
 	// TODO move this element creation elsewhere.
 	video.crossOrigin = "anonymous";
-	video.src = new URL(`/meme/${path}`, import.meta.env.VITE_APP_URL).toString();
+	video.src = new URL(`/meme/${path}`, APP_URL).toString();
 	video.muted = true; // Otherwise autoplay might not work
 	video.playsInline = true;
 	video.style.objectFit = videoSource.fit || "contain";

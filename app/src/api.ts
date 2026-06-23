@@ -6,6 +6,7 @@ export type * from "@hang/api";
 export * from "@hang/api/client";
 
 import { Effect, Signal } from "@moq/signals";
+import { API_URL } from "./config";
 import Settings from "./settings";
 import * as Tauri from "./tauri";
 
@@ -31,7 +32,7 @@ export class Client {
 
 		this.#authenticated = new Signal(!!token);
 		const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-		this.routes = hc<Api.App>(import.meta.env.VITE_API_URL, { headers });
+		this.routes = hc<Api.App>(API_URL, { headers });
 
 		this.signals.effect((effect: Effect) => {
 			// TODO async verify the token is valid
@@ -40,7 +41,7 @@ export class Client {
 
 			// Annoying duplication, but I don't want to leave this.routes uninitialized.
 			const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-			this.routes = hc<Api.App>(import.meta.env.VITE_API_URL, { headers });
+			this.routes = hc<Api.App>(API_URL, { headers });
 		});
 
 		this.signals.effect((effect) => {

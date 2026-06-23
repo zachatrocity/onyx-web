@@ -1,0 +1,11 @@
+.git
+.github
+.direnv
+node_modules
+app/dist
+api/dist
+native/target
+target
+.wrangler
+**/.DS_Store
+**/*.log

@@ -37,8 +37,8 @@ dev/        Local relay server config
 Clone the repo:
 
 ```sh
-git clone https://github.com/moq-dev/hang.live.git
-cd hang.live
+git clone https://github.com/zachatrocity/onyx-web.git
+cd onyx-web
 ```
 
 **With Nix + direnv** (recommended):
@@ -60,6 +60,51 @@ just dev
 - **api** — Cloudflare Workers dev server (via wrangler)
 - **app** — Vite dev server on port 1420
 - **relay** — MOQ relay server
+
+## Paved-road deployment
+
+The self-hosted path starts with the web app as a Docker image. The image serves
+the built Vite app with nginx on port `8080` and writes `/config.js` at startup
+from environment variables, so one published image can point at different API
+origins without rebuilding.
+
+Published image:
+
+```sh
+ghcr.io/zachatrocity/onyx-web/web:main
+```
+
+Run it directly:
+
+```sh
+docker run --rm \
+  -p 8080:8080 \
+  -e API_URL="https://api.example.com" \
+  -e APP_URL="https://onyx.example.com" \
+  ghcr.io/zachatrocity/onyx-web/web:main
+```
+
+Recommended Compose shape:
+
+```yaml
+services:
+  web:
+    image: ghcr.io/zachatrocity/onyx-web/web:main
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      API_URL: "https://api.example.com"
+      APP_URL: "https://onyx.example.com"
+```
+
+Put this behind Caddy, Traefik, or Nginx for public TLS. The web container is
+stateless; durable data still belongs to the API, object storage, and MOQ relay.
+Today the API remains Cloudflare Workers-shaped, so a fully self-hosted install
+still needs the API/storage/relay adapters described in the architecture work.
+
+The `Publish web image` workflow builds and pushes the image to GHCR on `main`,
+version tags matching `v*`, and manual dispatches.
 
 ## Commands
 
