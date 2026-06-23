@@ -10,16 +10,16 @@ root: auth-key
 auth-key:
 	@if [ ! -f "root.jwk" ]; then \
 		rm -f *.jwt; \
-		moq-token-cli --key "root.jwk" generate; \
+		moq-token-cli generate --out "root.jwk"; \
 	fi
 
 # Generate authentication tokens for local development.
 auth-token: auth-key
 	@if [ ! -f "root.jwt" ]; then \
-		moq-token-cli --key "root.jwk" sign \
+		moq-token-cli sign \
+			--key "root.jwk" \
 			--root "" \
 			--subscribe "" \
 			--publish "" \
-			--cluster \
 			> root.jwt ; \
 	fi

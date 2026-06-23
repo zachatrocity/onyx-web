@@ -2,11 +2,6 @@
 
 # Using Just: https://github.com/casey/just?tab=readme-ov-file#installation
 
-mod api
-mod app
-mod dev
-mod native
-mod infra
 
 # List all of the available commands.
 default:
@@ -22,13 +17,13 @@ check:
 	else
 		bun run --filter='*' check
 	fi
-	just native check
+	just --justfile native/justfile check
 
 # Automatically fix some issues.
 fix:
 	bun install
 	bun run --filter='*' fix
-	just native fix
+	just --justfile native/justfile fix
 
 # Upgrade any tooling
 upgrade:
@@ -45,29 +40,29 @@ prod: build
 	bun run --filter='*' prod
 
 deploy env="staging":
-	just api deploy "{{env}}"
-	just app deploy "{{env}}"
+	just --justfile api/justfile deploy "{{env}}"
+	just --justfile app/justfile deploy "{{env}}"
 
 dev:
 	bun install
-	@just dev auth-token
+	@just --justfile dev/justfile auth-token
 	bun concurrently --kill-others --names api,app,relay --prefix-colors auto \
-		"just api dev" \
-		"just app dev" \
-		"just dev root"
+		"just --justfile api/justfile dev" \
+		"just --justfile app/justfile dev" \
+		"just --justfile dev/justfile root"
 
 # Run the native app in development mode
 native:
-	just native dev
+	just --justfile native/justfile dev
 
 # Run the Android build, using --open to open Android Studio
 android *args:
-	just native android {{args}}
+	just --justfile native/justfile android {{args}}
 
 # Run the iOS build, using --open to open Xcode
 ios *args:
-	just native ios {{args}}
+	just --justfile native/justfile ios {{args}}
 
 # Release the app for the given platform
 release platform:
-	just native release "{{platform}}"
+	just --justfile native/justfile release "{{platform}}"
