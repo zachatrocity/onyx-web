@@ -2,6 +2,7 @@ import type * as Publish from "@moq/publish";
 import solid from "@moq/signals/solid";
 import { createEffect, createSignal, For, onCleanup, onMount, type Setter, Show } from "solid-js";
 import type { JSX } from "solid-js/jsx-runtime";
+import { APP_URL } from "../config";
 import * as Meme from "../room/meme";
 import Settings from "../settings";
 
@@ -260,7 +261,7 @@ function VideoMemeItem(props: VideoMemeItemProps): JSX.Element {
 		>
 			{/* Thumbnail background */}
 			<img
-				src={new URL(`/meme/${props.data.thumbnail}`, import.meta.env.VITE_APP_URL).toString()}
+				src={new URL(`/meme/${props.data.thumbnail}`, APP_URL).toString()}
 				alt={props.name}
 				class="absolute inset-0 w-full h-full opacity-30"
 				style={{
