@@ -1,4 +1,16 @@
 services:
+  relay:
+    image: moqdev/moq-relay:latest
+    restart: unless-stopped
+    working_dir: /relay
+    command: ["moq-relay", "root.toml"]
+    ports:
+      - "4443:4443/tcp"
+      - "4443:4443/udp"
+    volumes:
+      - ./dev/root.toml:/relay/root.toml:ro
+      - ./dev/root.jwk:/relay/root.jwk:ro
+
   api:
     build:
       context: .
@@ -10,6 +22,9 @@ services:
       - api/.env.selfhost
     volumes:
       - onyx-data:/data
+    depends_on:
+      relay:
+        condition: service_started
 
   web:
     build:

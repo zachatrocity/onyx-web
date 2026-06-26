@@ -73,8 +73,9 @@ bun --filter @hang/api run dev:node
 
 ## Paved-road deployment
 
-The self-hosted path is Docker Compose with two containers:
+The self-hosted path is Docker Compose with three containers:
 
+- `relay` runs `moq-relay` on port `4443` for browser/native media transport.
 - `api` runs the Hono API on Node.js 22, listens on port `3000`, stores SQLite at
   `/data/onyx.sqlite3`, and stores public/avatar objects under `/data/public`.
 - `web` serves the built Vite app with nginx on port `8080` and writes
@@ -93,7 +94,9 @@ Run the stack:
 
 ```sh
 cp api/.env.selfhost.example api/.env.selfhost
-# edit api/.env.selfhost, then run:
+just --justfile dev/justfile auth-key
+# set RELAY_SECRET in api/.env.selfhost to the exact contents of dev/root.jwk
+# edit the rest of api/.env.selfhost, then run:
 docker compose up -d --build
 ```
 
@@ -154,6 +157,31 @@ Recommended Compose shape:
 
 ```yaml
 services:
+  relay:
+    image: moqdev/moq-relay:latest
+    restart: unless-stopped
+    working_dir: /relay
+    command: ["moq-relay", "root.toml"]
+    ports:
+      - "4443:4443/tcp"
+      - "4443:4443/udp"
+    volumes:
+      - ./dev/root.toml:/relay/root.toml:ro
+      - ./dev/root.jwk:/relay/root.jwk:ro
+
+  api:
+    image: ghcr.io/zachatrocity/onyx-web/api:main
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - api/.env.selfhost
+    volumes:
+      - onyx-data:/data
+    depends_on:
+      relay:
+        condition: service_started
+
   web:
     image: ghcr.io/zachatrocity/onyx-web/web:main
     restart: unless-stopped
@@ -162,6 +190,12 @@ services:
     environment:
       API_URL: "https://api.example.com"
       APP_URL: "https://onyx.example.com"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  onyx-data:
 ```
 
 Put this behind Caddy, Traefik, or Nginx for public TLS. The web container is
