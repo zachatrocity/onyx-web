@@ -4,8 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile.api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     env_file:
       - api/.env.selfhost
     volumes:
@@ -17,10 +15,10 @@ services:
       dockerfile: Dockerfile.web
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${WEB_PORT:-8080}:8080"
     environment:
-      API_URL: "http://localhost:3000"
-      APP_URL: "http://localhost:8080"
+      API_URL: "/api"
+      APP_URL: "${APP_URL:-http://localhost:8080}"
     depends_on:
       api:
         condition: service_healthy

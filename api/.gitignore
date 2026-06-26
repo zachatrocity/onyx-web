@@ -4,6 +4,7 @@ dev/
 
 # Local development files
 dev/
+.env.selfhost
 
 # Build output
 dist/

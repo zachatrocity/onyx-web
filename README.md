@@ -73,12 +73,15 @@ bun --filter @hang/api run dev:node
 
 ## Paved-road deployment
 
-The self-hosted path is Docker Compose with two containers:
+The self-hosted path is Docker Compose with two containers and one named data
+volume:
 
 - `api` runs the Hono API on Node.js 22, listens on port `3000`, stores SQLite at
   `/data/onyx.sqlite3`, and stores public/avatar objects under `/data/public`.
+  It is only exposed on the Compose network.
 - `web` serves the built Vite app with nginx on port `8080` and writes
-  `/config.js` at startup from environment variables.
+  `/config.js` at startup from environment variables. It also proxies `/api/*`
+  to the API container so the browser can use one public origin.
 
 The paved-road backup target is the API `/data` volume. Back up the full volume,
 not just the SQLite file, because uploaded public/avatar objects live beside the
@@ -87,7 +90,10 @@ database. Before upgrades, stop the stack or take a filesystem snapshot so
 
 Required API environment variables are listed in `api/.env.selfhost.example`.
 Startup fails fast when required URLs, secrets, OAuth provider settings,
-`DATABASE_PATH`, or `PUBLIC_STORAGE_PATH` are missing or malformed.
+`DATABASE_PATH`, or `PUBLIC_STORAGE_PATH` are missing, malformed, or still set
+to the example `replace-with-*` placeholders. The example `RELAY_SECRET` is a
+valid development key so the stack can boot locally; generate a fresh production
+relay key with `bunx @moq/token generate`.
 
 Run the stack:
 
@@ -97,13 +103,32 @@ cp api/.env.selfhost.example api/.env.selfhost
 docker compose up -d --build
 ```
 
-Published image:
+For a local homelab test, the default URLs in `api/.env.selfhost.example` assume
+the stack is reachable at `http://localhost:8080` and the API is reached through
+`http://localhost:8080/api`. For a real hostname behind Caddy, Traefik, or Nginx,
+set these values in `api/.env.selfhost`:
+
+```env
+API_URL=https://onyx.example.com/api
+APP_URL=https://onyx.example.com
+R2_PUBLIC_URL=https://onyx.example.com/api/public
+```
+
+If you expose the web container on a different host port, set `WEB_PORT` when
+starting Compose:
 
 ```sh
+WEB_PORT=8090 docker compose up -d --build
+```
+
+Published images:
+
+```sh
+ghcr.io/zachatrocity/onyx-web/api:main
 ghcr.io/zachatrocity/onyx-web/web:main
 ```
 
-Run it directly:
+Run the web image directly only when you already have an API reachable elsewhere:
 
 ```sh
 docker run --rm \
@@ -127,12 +152,13 @@ services:
       APP_URL: "https://onyx.example.com"
 ```
 
-Put this behind Caddy, Traefik, or Nginx for public TLS. The web container is
-stateless; durable data belongs to the API `/data` volume and the MOQ relay
-configuration.
+The recommended deployment is the checked-in `compose.yaml`, not a standalone
+web container. Put the web service behind Caddy, Traefik, or Nginx for public
+TLS. The web container is stateless; durable data belongs to the API `/data`
+volume and the MOQ relay configuration.
 
-The `Publish web image` workflow builds and pushes the image to GHCR on `main`,
-version tags matching `v*`, and manual dispatches.
+The `Publish Docker images` workflow builds and pushes both images to GHCR on
+`main`, version tags matching `v*`, and manual dispatches.
 
 ## Commands
 

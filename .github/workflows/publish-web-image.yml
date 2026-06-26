@@ -1,4 +1,4 @@
-name: Publish web image
+name: Publish Docker images
 
 on:
   push:
@@ -12,8 +12,15 @@ permissions:
 
 jobs:
   publish:
-    name: Publish web image
+    name: Publish ${{ matrix.image }} image
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: web
+            dockerfile: Dockerfile.web
+          - image: api
+            dockerfile: Dockerfile.api
 
     steps:
       - name: Checkout
@@ -33,7 +40,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/web
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -43,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.web
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
