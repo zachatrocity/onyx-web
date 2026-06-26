@@ -161,7 +161,7 @@ services:
     image: moqdev/moq-relay:latest
     restart: unless-stopped
     working_dir: /relay
-    command: ["moq-relay", "root.toml"]
+    command: ["root.toml"]
     ports:
       - "4443:4443/tcp"
       - "4443:4443/udp"
