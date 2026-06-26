@@ -24,9 +24,9 @@ export default function Privacy() {
 					<p class="mb-4">We collect minimal information to provide our service:</p>
 					<ul class="list-disc pl-6 space-y-2">
 						<li>
-							<strong>Account Information</strong>: When you sign in with a linked provider (ex. Google,
-							Discord, or Apple), we store your email address, display name, and avatar. You can replace
-							your name and avatar at any time.
+							<strong>Account Information</strong>: When you create a local account, we store your email
+							address, display name, password hash, and avatar. You can replace your name and avatar at
+							any time.
 						</li>
 						<li>
 							<strong>Session State</strong>: An authentication token and any user preferences are stored
@@ -72,16 +72,6 @@ export default function Privacy() {
 						<li>Authentication tokens are stored locally in your browser</li>
 						<li>Video/audio is cached in RAM for a few seconds</li>
 					</ul>
-				</section>
-
-				<section class="mb-8">
-					<h2 class="text-2xl font-semibold mb-4 underline decoration-link-hue underline-offset-2">
-						Third-Party Authentication
-					</h2>
-					<p>
-						We use Google, Discord, and Apple for sign-in. When you authenticate, you're subject to their
-						privacy policies. We only receive basic profile information with your consent.
-					</p>
 				</section>
 
 				<section class="mb-8">

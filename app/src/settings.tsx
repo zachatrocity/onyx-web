@@ -57,9 +57,10 @@ export const Settings = {
 		avatar: new Signal<string | undefined>(localStorage.getItem("settings.account.avatar") ?? Api.randomAvatar()),
 	},
 
-	oauth: {
-		token: new Signal<string | undefined>(localStorage.getItem("settings.oauth.token") ?? undefined),
-		random: new Signal<string | undefined>(localStorage.getItem("settings.oauth.random") ?? undefined),
+	auth: {
+		token: new Signal<string | undefined>(
+			localStorage.getItem("settings.auth.token") ?? localStorage.getItem("settings.oauth.token") ?? undefined,
+		),
 	},
 
 	// Meme selector settings
@@ -171,19 +172,12 @@ effect.subscribe(Settings.account.avatar, (avatar) => {
 	}
 });
 
-effect.subscribe(Settings.oauth.token, (token) => {
+effect.subscribe(Settings.auth.token, (token) => {
 	if (token) {
-		localStorage.setItem("settings.oauth.token", token);
-	} else {
+		localStorage.setItem("settings.auth.token", token);
 		localStorage.removeItem("settings.oauth.token");
-	}
-});
-
-effect.subscribe(Settings.oauth.random, (random) => {
-	if (random) {
-		localStorage.setItem("settings.oauth.random", random);
 	} else {
-		localStorage.removeItem("settings.oauth.random");
+		localStorage.removeItem("settings.auth.token");
 	}
 });
 

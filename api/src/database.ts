@@ -6,13 +6,12 @@ import { drizzle as drizzleBetter } from "drizzle-orm/better-sqlite3";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import * as Account from "./account";
 import type { RuntimeEnv } from "./config";
-import * as OAuth from "./oauth";
 
 // biome-ignore lint/suspicious/noExplicitAny: Drizzle's D1, Bun, and better-sqlite3 drivers share runtime APIs but not a useful common static type.
 export type Context = any;
 
 export function init(env: RuntimeEnv): Context {
-	const schema = { ...OAuth.table, ...Account.table };
+	const schema = { ...Account.table };
 
 	if (env.DB) {
 		return drizzleD1(env.DB, { schema });

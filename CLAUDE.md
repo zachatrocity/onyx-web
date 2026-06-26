@@ -55,13 +55,13 @@ Desktop application using Tauri:
 Hang-specific server and business logic:
 - **Entry**: `src/index.ts` - Hono app
 - **Routes**: RPC endpoints using Hono RPC
-- **Auth**: JWT with OAuth providers in `src/auth.ts`
+- **Auth**: JWT with first-party email/password accounts in `src/auth.ts`
 - **Environment**: Cloudflare Workers with D1 database and R2 storage
 
 ### Key Patterns
 1. **Type-safe RPC**: Backend and frontend share types
 2. **WebTransport Rooms**: Real-time media streaming via MOQ protocol
-3. **OAuth Flow**: Authentication with Google/Discord through popup windows
+3. **Local Auth Flow**: Authentication uses first-party email/password accounts
 4. **Edge-first**: All backend services run on Cloudflare's edge network
 5. **MOQ Libraries**: Published npm packages from the open-source moq project
 
