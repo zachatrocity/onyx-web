@@ -97,6 +97,43 @@ cp api/.env.selfhost.example api/.env.selfhost
 docker compose up -d --build
 ```
 
+### Stupid simple Docker Compose example
+
+If you just want the smallest copy-paste starting point, this is the shape:
+
+```yaml
+services:
+  api:
+    image: ghcr.io/zachatrocity/onyx-web/api:main
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - api/.env.selfhost
+    volumes:
+      - onyx-data:/data
+
+  web:
+    image: ghcr.io/zachatrocity/onyx-web/web:main
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      API_URL: "http://localhost:3000"
+      APP_URL: "http://localhost:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  onyx-data:
+```
+
+That example assumes:
+- API on `http://localhost:3000`
+- web UI on `http://localhost:8080`
+- durable SQLite + public storage mounted under the `onyx-data` volume
+
 Published image:
 
 ```sh
