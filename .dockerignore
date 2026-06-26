@@ -1,11 +1,16 @@
 .git
 .github
 .direnv
+.envrc
 node_modules
 app/dist
 api/dist
+api/.env.selfhost
+native
 native/target
 target
 .wrangler
+.DS_Store
 **/.DS_Store
+*.log
 **/*.log
