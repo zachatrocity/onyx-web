@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { RuntimeEnv } from "./config";
 import * as rpc from "./rpc";
 
 export { randomAvatar as random } from "./client";
@@ -6,7 +7,7 @@ export { randomAvatar as random } from "./client";
 export const typeSchema = z.enum(["url", "r2"]);
 export type Type = z.infer<typeof typeSchema>;
 
-export function url(env: Env, type: string, key: string): string {
+export function url(env: RuntimeEnv, type: string, key: string): string {
 	if (type === "url") {
 		return key;
 	} else if (type === "r2") {

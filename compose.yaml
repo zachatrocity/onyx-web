@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - api/.env.selfhost
+    volumes:
+      - onyx-data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      API_URL: "http://localhost:3000"
+      APP_URL: "http://localhost:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  onyx-data:

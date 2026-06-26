@@ -5,6 +5,7 @@ import { z } from "zod";
 import * as Auth from "./auth";
 import * as Avatar from "./avatar";
 import { AccountId, accountIdSchema } from "./client";
+import type { RuntimeEnv } from "./config";
 import * as Database from "./database";
 import * as OAuth from "./oauth";
 import * as rpc from "./rpc";
@@ -80,11 +81,11 @@ export const router = rpc
 	});
 
 export class Context {
-	env: Env;
+	env: RuntimeEnv;
 	db: Database.Context;
 	storage: Storage.Context;
 
-	constructor(env: Env, db: Database.Context, storage: Storage.Context) {
+	constructor(env: RuntimeEnv, db: Database.Context, storage: Storage.Context) {
 		this.env = env;
 		this.db = db;
 		this.storage = storage;

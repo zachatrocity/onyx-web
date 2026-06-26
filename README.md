@@ -9,7 +9,7 @@ Try it at [hang.live](https://hang.live).
 Hang combines a closed-source application layer with an [open-source media streaming library](https://github.com/kixelated/moq):
 
 - **app** — Web frontend built with SolidJS, Vite, and Tailwind CSS v4
-- **api** — Backend running on Cloudflare Workers with Hono and Drizzle ORM
+- **api** — Hono backend with Drizzle ORM. The self-hosted path runs on Node.js with SQLite and filesystem storage; the older Cloudflare deployment path remains available for now.
 - **native** — Desktop/mobile app using Tauri v2
 The frontend and backend share types via Hono RPC. Real-time media is streamed over WebTransport using the [MOQ protocol](https://github.com/moq-dev/moq), consumed as published npm packages (`@moq/*`).
 
@@ -17,7 +17,7 @@ The frontend and backend share types via Hono RPC. Real-time media is streamed o
 
 ```
 app/        Web frontend (SolidJS + Vite)
-api/        Backend API (Cloudflare Workers + Hono)
+api/        Backend API (Hono + Drizzle)
 native/     Desktop/mobile app (Tauri v2)
 dev/        Local relay server config
 ```
@@ -61,12 +61,41 @@ just dev
 - **app** — Vite dev server on port 1420
 - **relay** — MOQ relay server
 
+To run the self-hosted Node API locally instead of Wrangler, copy
+`api/.env.selfhost.example`, fill in the OAuth and relay secrets, then run:
+
+```sh
+set -a
+. api/.env.selfhost.example
+set +a
+bun --filter @hang/api run dev:node
+```
+
 ## Paved-road deployment
 
-The self-hosted path starts with the web app as a Docker image. The image serves
-the built Vite app with nginx on port `8080` and writes `/config.js` at startup
-from environment variables, so one published image can point at different API
-origins without rebuilding.
+The self-hosted path is Docker Compose with two containers:
+
+- `api` runs the Hono API on Node.js 22, listens on port `3000`, stores SQLite at
+  `/data/onyx.sqlite3`, and stores public/avatar objects under `/data/public`.
+- `web` serves the built Vite app with nginx on port `8080` and writes
+  `/config.js` at startup from environment variables.
+
+The paved-road backup target is the API `/data` volume. Back up the full volume,
+not just the SQLite file, because uploaded public/avatar objects live beside the
+database. Before upgrades, stop the stack or take a filesystem snapshot so
+`/data/onyx.sqlite3` and `/data/public` are captured together.
+
+Required API environment variables are listed in `api/.env.selfhost.example`.
+Startup fails fast when required URLs, secrets, OAuth provider settings,
+`DATABASE_PATH`, or `PUBLIC_STORAGE_PATH` are missing or malformed.
+
+Run the stack:
+
+```sh
+cp api/.env.selfhost.example api/.env.selfhost
+# edit api/.env.selfhost, then run:
+docker compose up -d --build
+```
 
 Published image:
 
@@ -99,9 +128,8 @@ services:
 ```
 
 Put this behind Caddy, Traefik, or Nginx for public TLS. The web container is
-stateless; durable data still belongs to the API, object storage, and MOQ relay.
-Today the API remains Cloudflare Workers-shaped, so a fully self-hosted install
-still needs the API/storage/relay adapters described in the architecture work.
+stateless; durable data belongs to the API `/data` volume and the MOQ relay
+configuration.
 
 The `Publish web image` workflow builds and pushes the image to GHCR on `main`,
 version tags matching `v*`, and manual dispatches.

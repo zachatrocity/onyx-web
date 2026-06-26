@@ -1,35 +1,63 @@
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join, normalize } from "node:path";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import type { RuntimeEnv } from "./config";
 import * as rpc from "./rpc";
 
 export class Context {
-	#bucket: R2Bucket;
+	#bucket?: R2Bucket;
+	#root?: string;
 
-	constructor(env: Env) {
+	constructor(env: RuntimeEnv) {
 		this.#bucket = env.PUBLIC;
+		this.#root = env.PUBLIC_STORAGE_PATH;
 	}
 
 	async upload(folder: string, file: Uint8Array, extension: string): Promise<string> {
 		const key = `${uuidv4()}.${extension}`;
 		const fullPath = `${folder}/${key}`;
 
-		await this.#bucket.put(fullPath, file);
+		if (this.#bucket) {
+			await this.#bucket.put(fullPath, file);
+		} else {
+			const path = this.#path(folder, key);
+			await mkdir(dirname(path), { recursive: true });
+			await writeFile(path, file);
+		}
 		return key;
 	}
 
 	async get(folder: string, key: string): Promise<ArrayBuffer | null> {
 		const fullPath = `${folder}/${key}`;
 
-		const object = await this.#bucket.get(fullPath);
-		if (!object) {
-			return null;
+		if (this.#bucket) {
+			const object = await this.#bucket.get(fullPath);
+			if (!object) {
+				return null;
+			}
+			return await object.arrayBuffer();
 		}
-		return await object.arrayBuffer();
+
+		try {
+			const file = await readFile(this.#path(folder, key));
+			return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+		} catch (error) {
+			if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+				return null;
+			}
+			throw error;
+		}
 	}
 
 	async delete(folder: string, key: string): Promise<void> {
 		const fullPath = `${folder}/${key}`;
-		await this.#bucket.delete(fullPath);
+		if (this.#bucket) {
+			await this.#bucket.delete(fullPath);
+			return;
+		}
+
+		await rm(this.#path(folder, key), { force: true });
 	}
 
 	extension(contentType: string): string {
@@ -42,6 +70,19 @@ export class Context {
 		};
 
 		return extensions[contentType] || "jpg";
+	}
+
+	#path(folder: string, key: string): string {
+		if (!this.#root) {
+			throw new Error("PUBLIC_STORAGE_PATH is required when PUBLIC bucket binding is not configured");
+		}
+
+		const relative = normalize(join(folder, key));
+		if (relative === ".." || relative.startsWith("../")) {
+			throw new Error("Invalid storage path");
+		}
+
+		return join(this.#root, relative);
 	}
 }
 

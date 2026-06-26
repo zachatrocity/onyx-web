@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import * as Account from "../src/account";
 import * as Auth from "../src/auth";
 import * as Avatar from "../src/avatar";
+import type { RuntimeEnv } from "../src/config";
+import * as Database from "../src/database";
 import * as Fave from "../src/fave";
 import * as Health from "../src/health";
 import * as OAuth from "../src/oauth";
@@ -25,9 +27,11 @@ const env = {
 	DISCORD_CLIENT_SECRET: "discord-secret",
 	APPLE_CLIENT_SECRET: "apple-secret",
 	RELAY_SECRET: "relay-secret",
+	DATABASE_PATH: ":memory:",
+	PUBLIC_STORAGE_PATH: "/tmp/onyx-test-public",
 	PUBLIC: {} as R2Bucket,
 	DB: {} as D1Database,
-} satisfies Env;
+} satisfies RuntimeEnv;
 
 function mount(base: string, router: Hono, ctx: Record<string, unknown>) {
 	const app = new Hono();
@@ -51,52 +55,6 @@ async function tokenFor(accountId = "account-1") {
 
 function bearer(token: string) {
 	return { Authorization: `Bearer ${token}` };
-}
-
-class FakeFavoriteStore {
-	#favorites = new Map<string, Map<string, number>>();
-
-	prepare(sql: string) {
-		return {
-			bind: (...args: string[]) => ({
-				run: async () => this.#run(sql, args),
-				all: async <T>() => ({ results: this.#all(sql, args) as T[] }),
-				first: async () => this.#first(sql, args),
-			}),
-		};
-	}
-
-	async #run(sql: string, args: string[]) {
-		const [accountId, room] = args;
-		if (sql.startsWith("INSERT INTO favorites")) {
-			const rooms = this.#favorites.get(accountId) ?? new Map<string, number>();
-			if (rooms.has(room)) {
-				throw new Error("UNIQUE constraint failed: favorites.account_id, favorites.room");
-			}
-			rooms.set(room, Date.now());
-			this.#favorites.set(accountId, rooms);
-		}
-		if (sql.startsWith("DELETE FROM favorites")) {
-			this.#favorites.get(accountId)?.delete(room);
-		}
-		return { success: true };
-	}
-
-	#all(sql: string, args: string[]) {
-		if (!sql.startsWith("SELECT room, created_at FROM favorites")) {
-			return [];
-		}
-		return [...(this.#favorites.get(args[0]) ?? new Map()).entries()]
-			.map(([room, created_at]) => ({ room, created_at }))
-			.sort((a, b) => b.created_at - a.created_at);
-	}
-
-	#first(sql: string, args: string[]) {
-		if (!sql.startsWith("SELECT 1 FROM favorites")) {
-			return null;
-		}
-		return this.#favorites.get(args[0])?.has(args[1]) ? { "1": 1 } : null;
-	}
 }
 
 class FakeBucket {
@@ -372,11 +330,20 @@ describe("account routes", () => {
 });
 
 describe("favorites routes", () => {
-	function app() {
-		const db = new FakeFavoriteStore();
+	async function app() {
+		const db = Database.init({ ...env, DB: undefined, DATABASE_PATH: ":memory:" });
+		await db.insert(Account.table).values({
+			id: "account-1",
+			email: "person@example.com",
+			name: "Test User",
+			avatar: "avatar.png",
+			avatarType: "url",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
 		return mount("/fave", Fave.router, {
 			auth: authCtx(),
-			db: { $client: db },
+			db,
 			env,
 			room: {
 				signPreview: async (rooms: string[]) => `demo/?jwt=preview-${rooms.join(",")}`,
@@ -386,7 +353,7 @@ describe("favorites routes", () => {
 
 	test("adds, lists, checks, and removes favorites", async () => {
 		const token = await tokenFor("account-1");
-		const favoriteApp = app();
+		const favoriteApp = await app();
 
 		expect(
 			await (await favoriteApp.request("/fave/lounge/add", { method: "POST", headers: bearer(token) })).json(),
@@ -414,7 +381,7 @@ describe("favorites routes", () => {
 
 	test("treats duplicate favorite adds as idempotent success", async () => {
 		const token = await tokenFor("account-1");
-		const favoriteApp = app();
+		const favoriteApp = await app();
 
 		await favoriteApp.request("/fave/lounge/add", { method: "POST", headers: bearer(token) });
 		const duplicate = await favoriteApp.request("/fave/lounge/add", { method: "POST", headers: bearer(token) });
