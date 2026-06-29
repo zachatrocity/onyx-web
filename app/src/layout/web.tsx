@@ -45,16 +45,6 @@ export default function Web(props: { children: JSX.Element; link?: string }) {
 			</main>
 
 			<footer class="flex justify-center items-center gap-4 mt-4 sm:mt-8 leading-none text-xl text-center text-gray-500">
-				<Tooltip content="Join Discord" position="top">
-					<a
-						href="https://discord.gg/SRG9gu6BdE"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all cursor-pointer"
-					>
-						<span class="icon-[mdi--discord]" />
-					</a>
-				</Tooltip>
 				<Tooltip content="Open Source" position="top">
 					<a
 						href="https://moq.dev"

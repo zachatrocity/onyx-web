@@ -7,25 +7,16 @@ import type { RuntimeEnv } from "../src/config";
 import * as Database from "../src/database";
 import * as Fave from "../src/fave";
 import * as Health from "../src/health";
-import * as OAuth from "../src/oauth";
 import * as Room from "../src/room";
 import * as Storage from "../src/storage";
 
 const env = {
 	API_URL: "http://localhost:3000",
 	APP_URL: "http://localhost:1420",
-	GOOGLE_CLIENT_ID: "632186286103-6g3knqa8eof9p4bf1ndedgn9r6g68n73.apps.googleusercontent.com",
-	DISCORD_CLIENT_ID: "1392633766010294494",
 	R2_PUBLIC_URL: "http://localhost:3000/public",
 	RELAY_URL: "http://localhost:4443",
 	RELAY_PREFIX: "demo",
-	APPLE_CLIENT_ID: "now.hang.api",
-	APPLE_TEAM_ID: "D7D5SDDB5Z",
-	APPLE_KEY_ID: "7BQ2ZQY943",
 	AUTH_SECRET: "test-auth-secret",
-	GOOGLE_CLIENT_SECRET: "google-secret",
-	DISCORD_CLIENT_SECRET: "discord-secret",
-	APPLE_CLIENT_SECRET: "apple-secret",
 	RELAY_SECRET: "relay-secret",
 	DATABASE_PATH: ":memory:",
 	PUBLIC_STORAGE_PATH: "/tmp/onyx-test-public",
@@ -192,70 +183,128 @@ describe("auth middleware and JWT context", () => {
 	});
 });
 
-describe("OAuth redirect allowlist", () => {
-	function app() {
+describe("local auth routes", () => {
+	test("registers a local account and returns a token", async () => {
 		const createdAccount = {
 			id: "account-1",
 			name: "Test User",
 			avatar: "https://example.com/avatar.png",
 		};
-		return mount("/auth", OAuth.router, {
-			env,
+		const app = mount("/auth", Auth.router, {
 			auth: { create: async () => "api-token" },
-			oauth: {
-				provider: (id: string) => ({
-					id,
-					exchangeCodeForToken: async () => "provider-token",
-					getUser: async () => ({
-						provider: id,
-						providerId: "provider-user-1",
-						email: "person@example.com",
-						name: "Test User",
-						avatar: "https://example.com/avatar.png",
-					}),
-					link: async () => undefined,
-				}),
-			},
 			account: {
-				getByProvider: async () => undefined,
 				getByEmail: async () => undefined,
 				create: async () => createdAccount,
 			},
 		});
-	}
 
-	async function callback(redirect: string) {
-		const state = encodeURIComponent(JSON.stringify({ random: "nonce", redirect }));
-		return await app().request(`/auth/google/callback?code=abc&state=${state}`);
-	}
+		const response = await app.request("/auth/register", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Test User",
+				email: "PERSON@example.com",
+				password: "correct horse battery staple",
+			}),
+			headers: { "Content-Type": "application/json" },
+		});
 
-	test("allows redirects back to the configured app URL", async () => {
-		const response = await callback("http://localhost:1420/settings");
-
-		expect(response.status).toBe(302);
-		expect(response.headers.get("Location")).toBe("http://localhost:1420/settings?token=api-token&random=nonce");
+		expect(response.status).toBe(201);
+		expect(await response.json()).toEqual({ token: "api-token", account: createdAccount });
 	});
 
-	test("allows localhost callback redirects", async () => {
-		const response = await callback("http://localhost:5173/auth/callback");
+	test("rejects duplicate local registration", async () => {
+		const app = mount("/auth", Auth.router, {
+			account: {
+				getByEmail: async () => ({ id: "account-1" }),
+			},
+		});
 
-		expect(response.status).toBe(302);
-		expect(response.headers.get("Location")).toBe(
-			"http://localhost:5173/auth/callback?token=api-token&random=nonce",
-		);
+		const response = await app.request("/auth/register", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Test User",
+				email: "person@example.com",
+				password: "correct horse battery staple",
+			}),
+			headers: { "Content-Type": "application/json" },
+		});
+
+		expect(response.status).toBe(409);
 	});
 
-	test("allows native deep-link redirects", async () => {
-		const response = await callback("hang://auth/callback");
+	test("logs in an existing local account", async () => {
+		const hashApp = mount("/auth", Auth.router, {
+			auth: { create: async () => "unused" },
+			account: {
+				getByEmail: async () => undefined,
+				create: async () => ({
+					id: "account-1",
+					name: "Test User",
+					avatar: "https://example.com/avatar.png",
+				}),
+			},
+		});
+		const registerResponse = await hashApp.request("/auth/register", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Test User",
+				email: "person@example.com",
+				password: "correct horse battery staple",
+			}),
+			headers: { "Content-Type": "application/json" },
+		});
+		expect(registerResponse.status).toBe(201);
 
-		expect(response.status).toBe(302);
-		expect(response.headers.get("Location")).toBe("hang://auth/callback?token=api-token&random=nonce");
-	});
+		const passwordHash = await new Promise<string>((resolve) => {
+			const app = mount("/auth", Auth.router, {
+				auth: { create: async () => "unused" },
+				account: {
+					getByEmail: async () => undefined,
+					create: async (input: { passwordHash: string }) => {
+						resolve(input.passwordHash);
+						return {
+							id: "account-1",
+							name: "Test User",
+							avatar: "https://example.com/avatar.png",
+						};
+					},
+				},
+			});
+			void app.request("/auth/register", {
+				method: "POST",
+				body: JSON.stringify({
+					name: "Test User",
+					email: "person@example.com",
+					password: "correct horse battery staple",
+				}),
+				headers: { "Content-Type": "application/json" },
+			});
+		});
 
-	test("rejects redirects outside the allowlist", async () => {
-		const response = await callback("https://evil.example/callback");
+		const account = {
+			id: "account-1",
+			name: "Test User",
+			avatar: "https://example.com/avatar.png",
+		};
+		const app = mount("/auth", Auth.router, {
+			auth: { create: async () => "api-token" },
+			account: {
+				getLocalAuthByEmail: async () => ({ id: "account-1", passwordHash }),
+				get: async () => account,
+			},
+		});
 
-		expect(response.status).toBe(500);
+		const response = await app.request("/auth/login", {
+			method: "POST",
+			body: JSON.stringify({
+				email: "person@example.com",
+				password: "correct horse battery staple",
+			}),
+			headers: { "Content-Type": "application/json" },
+		});
+
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({ token: "api-token", account });
 	});
 });
 

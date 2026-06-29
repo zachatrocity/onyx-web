@@ -9,7 +9,6 @@
 		"core:window:allow-set-badge-count",
 		"process:default",
 		"deep-link:default",
-		"core:event:default",
-		"oauth:allow-start"
+		"core:event:default"
 	]
 }

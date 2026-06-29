@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import * as Uuid from "uuid";
 import { z } from "zod";
@@ -7,7 +7,6 @@ import * as Avatar from "./avatar";
 import { AccountId, accountIdSchema } from "./client";
 import type { RuntimeEnv } from "./config";
 import * as Database from "./database";
-import * as OAuth from "./oauth";
 import * as rpc from "./rpc";
 import * as Storage from "./storage";
 
@@ -26,6 +25,7 @@ export type Info = z.infer<typeof infoSchema>;
 export const createSchema = z.object({
 	name: z.string().check(z.minLength(4), z.maxLength(100)),
 	email: z.string().check(z.email()),
+	passwordHash: z.string().min(1),
 	avatar: z.optional(z.string()),
 });
 
@@ -35,6 +35,7 @@ export const table = sqliteTable("accounts", {
 	id: text("id").primaryKey(),
 	email: text("email").notNull().unique(),
 	name: text("name").notNull(),
+	passwordHash: text("password_hash").notNull().default(""),
 	avatar: text("avatar").notNull(),
 	avatarType: text("avatar_type").notNull(),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
@@ -101,17 +102,6 @@ export class Context {
 		return this.#rowToInfo(result.at(0));
 	}
 
-	async getByProvider(provider: OAuth.ProviderId, providerUser: string): Promise<Info | undefined> {
-		const result = await this.db
-			.select()
-			.from(table)
-			.innerJoin(OAuth.table, eq(table.id, OAuth.table.accountId))
-			.where(and(eq(OAuth.table.providerId, provider), eq(OAuth.table.providerUser, providerUser)))
-			.limit(1);
-
-		return this.#rowToInfo(result.at(0)?.accounts);
-	}
-
 	#rowToInfo(row?: Row): Info | undefined {
 		if (!row) return;
 
@@ -119,6 +109,22 @@ export class Context {
 			...row,
 			id: idSchema.parse(row.id),
 			avatar: Avatar.url(this.env, row.avatarType, row.avatar),
+		};
+	}
+
+	async getLocalAuthByEmail(email: string): Promise<{ id: Id; passwordHash: string } | undefined> {
+		const result = await this.db
+			.select({ id: table.id, passwordHash: table.passwordHash })
+			.from(table)
+			.where(eq(table.email, email))
+			.limit(1);
+
+		const row = result.at(0);
+		if (!row) return;
+
+		return {
+			id: idSchema.parse(row.id),
+			passwordHash: row.passwordHash,
 		};
 	}
 
@@ -234,9 +240,6 @@ export class Context {
 		if (account?.avatarType === "r2" && account.avatar) {
 			await this.storage.delete("avatar", account.avatar);
 		}
-
-		// Delete OAuth entries
-		await this.db.delete(OAuth.table).where(eq(OAuth.table.accountId, id));
 
 		// Delete account
 		await this.db.delete(table).where(eq(table.id, id));

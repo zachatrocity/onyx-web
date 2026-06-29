@@ -62,7 +62,7 @@ just dev
 - **relay** — MOQ relay server
 
 To run the self-hosted Node API locally instead of Wrangler, copy
-`api/.env.selfhost.example`, fill in the OAuth and relay secrets, then run:
+`api/.env.selfhost.example`, fill in the auth and relay secrets, then run:
 
 ```sh
 set -a
@@ -87,8 +87,8 @@ database. Before upgrades, stop the stack or take a filesystem snapshot so
 `/data/onyx.sqlite3` and `/data/public` are captured together.
 
 Required API environment variables are listed in `api/.env.selfhost.example`.
-Startup fails fast when required URLs, secrets, OAuth provider settings,
-`DATABASE_PATH`, or `PUBLIC_STORAGE_PATH` are missing or malformed.
+Startup fails fast when required URLs, secrets, `DATABASE_PATH`, or
+`PUBLIC_STORAGE_PATH` are missing or malformed.
 
 Run the stack:
 
